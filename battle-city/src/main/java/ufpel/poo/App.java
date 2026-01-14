@@ -1,13 +1,12 @@
 package ufpel.poo;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+import javax.swing.SwingUtilities;
+import ufpel.poo.view.Janela;
+
+public class App {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new Janela();
+        });
     }
 }
