@@ -11,14 +11,35 @@ public abstract class EntidadeDinamica {
     public EntidadeDinamica(int x, int y) {
         this.x = x;
         this.y = y;
-        this.velocidade = 4; 
-        this.direcao = Direcao.CIMA; 
+        this.velocidade = 4; // velocidade padrão (pixels por movimento)
+        this.direcao = Direcao.CIMA;
     }
 
     public int getX() { return x; }
     public int getY() { return y; }
     public Direcao getDirecao() { return direcao; }
-    public void setDirecao(Direcao direcao) { this.direcao = direcao; }
+    
+    public void setDirecao(Direcao direcao) { 
+        this.direcao = direcao; 
+    }
+
+    // lógica simples de movimento (sem colisão ainda)
+    public void mover() {
+        switch (this.direcao) {
+            case CIMA:
+                this.y -= velocidade;
+                break;
+            case BAIXO:
+                this.y += velocidade;
+                break;
+            case ESQUERDA:
+                this.x -= velocidade;
+                break;
+            case DIREITA:
+                this.x += velocidade;
+                break;
+        }
+    }
 
     public Rectangle getBounds() {
         return new Rectangle(x, y, 40, 40);
