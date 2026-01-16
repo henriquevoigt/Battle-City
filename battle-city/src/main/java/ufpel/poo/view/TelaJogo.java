@@ -66,6 +66,10 @@ public class TelaJogo extends JPanel implements ActionListener {
         gameLoop.start();
     }
 
+    public void carregarMapa(int indiceMapa) {
+        mapa.carregarMapaDeArquivo("maps.txt", indiceMapa);
+}
+
     @Override
     public void actionPerformed(ActionEvent e) {
         atualizarJogo();

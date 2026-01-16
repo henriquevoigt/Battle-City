@@ -26,7 +26,7 @@ public class MenuPanel extends JPanel {
         btnJogar.addActionListener(e -> {
             String nome = JOptionPane.showInputDialog("Digite seu nome, soldado:");
             if (nome != null && !nome.isEmpty()) {
-                janelaPrincipal.iniciarJogo(nome);
+                janelaPrincipal.mostrarSelecaoMapa(nome);
             }
         });
 

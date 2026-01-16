@@ -1,5 +1,8 @@
 package ufpel.poo.model;
-
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.awt.Graphics;
 
 public class Mapa {
@@ -10,8 +13,72 @@ public class Mapa {
     public Mapa() {
     
         grid = new Bloco[13][13];
-        inicializarMapaTeste();
+        inicializarVazio();
     }
+
+    private void inicializarVazio() {
+        for (int x = 0; x < 13; x++) {
+            for (int y = 0; y < 13; y++) {
+                grid[x][y] = new Vazio(x * TAMANHO_BLOCO, y * TAMANHO_BLOCO);
+            }
+        }
+    }
+
+
+    public void carregarMapaDeArquivo(String arquivo, int indiceMapa) {
+
+        // inicializa tudo como vazio
+        for (int x = 0; x < 13; x++) {
+            for (int y = 0; y < 13; y++) {
+                grid[x][y] = new Vazio(x * 40, y * 40);
+            }
+        }
+
+        try {
+
+            InputStream is = getClass()
+                    .getClassLoader()
+                    .getResourceAsStream(arquivo);
+
+            if (is == null) {
+                System.err.println("Arquivo não encontrado em resources: " + arquivo);
+                return;
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+            int mapaAtual = 0;
+            int linha = 0;
+            String texto;
+
+            while ((texto = br.readLine()) != null) {
+
+                if (texto.trim().isEmpty()) {
+                    mapaAtual++;
+                    linha = 0;
+                    continue;
+                }
+
+                if (mapaAtual != indiceMapa) continue;
+
+                String[] valores = texto.trim().split("\\s+");
+
+                for (int col = 0; col < 13; col++) {
+                    int tipo = Integer.parseInt(valores[col]);
+                    grid[col][linha] = BlocoFactory.criar(tipo, col, linha);
+                }
+
+                linha++;
+                if (linha == 13) break;
+            }
+
+            br.close();
+
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar mapa: " + e.getMessage());
+        }
+    }
+
 
     private void inicializarMapaTeste() {
 
@@ -55,3 +122,4 @@ public class Mapa {
         return null;
     }
 }
+
