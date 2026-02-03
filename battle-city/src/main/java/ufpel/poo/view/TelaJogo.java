@@ -23,7 +23,7 @@ public class TelaJogo extends JPanel implements ActionListener {
     private boolean cima, baixo, esquerda, direita; // "interruptores" de movimento
 
     private Timer gameLoop;
-
+   
     // resolução
     private final int TAMANHO_MAPA = 520;
     private final int LARGURA_HUD = 200;
@@ -80,16 +80,16 @@ public class TelaJogo extends JPanel implements ActionListener {
         // verifica qual interruptor ta ligado e move
         if (cima) {
             jogador.setDirecao(Direcao.CIMA);
-            jogador.mover();
+            jogador.mover(mapa);
         } else if (baixo) {
             jogador.setDirecao(Direcao.BAIXO);
-            jogador.mover();
+            jogador.mover(mapa);
         } else if (esquerda) {
             jogador.setDirecao(Direcao.ESQUERDA);
-            jogador.mover();
+            jogador.mover(mapa);
         } else if (direita) {
             jogador.setDirecao(Direcao.DIREITA);
-            jogador.mover();
+            jogador.mover(mapa);
         }
     }
 

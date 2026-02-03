@@ -23,21 +23,31 @@ public abstract class EntidadeDinamica {
         this.direcao = direcao; 
     }
 
-    // lógica simples de movimento (sem colisão ainda)
-    public void mover() {
-        switch (this.direcao) {
-            case CIMA:
-                this.y -= velocidade;
-                break;
-            case BAIXO:
-                this.y += velocidade;
-                break;
-            case ESQUERDA:
-                this.x -= velocidade;
-                break;
-            case DIREITA:
-                this.x += velocidade;
-                break;
+    public void mover(Mapa mapa) {
+        
+        int novoX = this.x; // local que está
+        int novoY = this.y;
+
+        
+        switch (this.direcao) { // local que quer ir
+            case CIMA:    novoY -= velocidade; break;
+            case BAIXO:   novoY += velocidade; break;
+            case ESQUERDA: novoX -= velocidade; break;
+            case DIREITA:  novoX += velocidade; break;
+        }
+
+        // verificação borda da tela
+        if (novoX < 0 || novoX > (520 - 40)) return; 
+        if (novoY < 0 || novoY > (520 - 40)) return;
+
+        // hitbox futura, 36px pra não prender nos cantos
+        java.awt.Rectangle retanguloFuturo = new java.awt.Rectangle(novoX + 2, novoY + 2, 36, 36);
+
+        // verifica se pode andar
+        if (!mapa.temColisao(retanguloFuturo)) {
+            // se o mapa disse que não tem colisão, anda
+            this.x = novoX;
+            this.y = novoY;
         }
     }
 

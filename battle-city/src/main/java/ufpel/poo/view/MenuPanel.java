@@ -15,7 +15,7 @@ public class MenuPanel extends JPanel {
         setLayout(new GridBagLayout());
         setBackground(Color.BLACK);     
 
-        JLabel titulo = new JLabel("Battlengana 1");
+        JLabel titulo = new JLabel("Battle City");
         titulo.setFont(new Font("Arial", Font.BOLD, 30));
         titulo.setForeground(Color.ORANGE);
         

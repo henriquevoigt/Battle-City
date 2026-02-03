@@ -121,5 +121,27 @@ public class Mapa {
         }
         return null;
     }
+
+    public boolean temColisao(java.awt.Rectangle retanguloTanque) {
+        
+        for (int i = 0; i < 13; i++) {  // percorre o grid para ver se bate em algo
+            for (int j = 0; j < 13; j++) {
+                Bloco bloco = grid[i][j];
+                
+                // se o bloco existe E nao é transponivel
+                if (bloco != null && !bloco.ehTransponivel()) {
+                    
+                    // cria a hitbox
+                    java.awt.Rectangle rectBloco = new java.awt.Rectangle(bloco.getX(), bloco.getY(), 40, 40);
+                    
+                    // verifica se bateu
+                    if (rectBloco.intersects(retanguloTanque)) {
+                        return true; // bateu
+                    }
+                }
+            }
+        }
+        return false; // não bateu
+    }
 }
 
