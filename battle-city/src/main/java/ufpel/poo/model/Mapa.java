@@ -1,6 +1,5 @@
 package ufpel.poo.model;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.awt.Graphics;
@@ -79,33 +78,6 @@ public class Mapa {
         }
     }
 
-
-    private void inicializarMapaTeste() {
-
-        for (int i = 0; i < 13; i++) {
-            for (int j = 0; j < 13; j++) {
-                grid[i][j] = new Vazio(i * TAMANHO_BLOCO, j * TAMANHO_BLOCO);
-            }
-        }
-
-        
-        for (int i = 0; i < 13; i++) {
-            grid[i][2] = new Tijolo(i * TAMANHO_BLOCO, 2 * TAMANHO_BLOCO);
-            grid[i][8] = new Tijolo(i * TAMANHO_BLOCO, 8 * TAMANHO_BLOCO);
-        }
-
-        
-        grid[7][4] = new Aco(7 * TAMANHO_BLOCO, 4 * TAMANHO_BLOCO);
-        grid[7][5] = new Aco(7 * TAMANHO_BLOCO, 5 * TAMANHO_BLOCO);
-        grid[7][6] = new Aco(7 * TAMANHO_BLOCO, 6 * TAMANHO_BLOCO);
-
-        grid[2][5] = new Agua(2 * TAMANHO_BLOCO, 5 * TAMANHO_BLOCO);
-        grid[3][5] = new Agua(3 * TAMANHO_BLOCO, 5 * TAMANHO_BLOCO);
-
-        grid[12][5] = new Arvore(12 * TAMANHO_BLOCO, 5 * TAMANHO_BLOCO);
-        grid[12][6] = new Arvore(12 * TAMANHO_BLOCO, 6 * TAMANHO_BLOCO);
-    }
-
     public void desenhar(Graphics g) {
         for (int i = 0; i < 13; i++) {
             for (int j = 0; j < 13; j++) {
@@ -143,5 +115,23 @@ public class Mapa {
         }
         return false; // não bateu
     }
-}
 
+    public boolean temColisaoProjetil(java.awt.Rectangle retanguloBala) {
+        
+        for (int i = 0; i < 13; i++) {
+            for (int j = 0; j < 13; j++) {
+                Bloco bloco = grid[i][j];
+                
+                if (bloco != null && !bloco.permiteTiro()) {
+                    
+                    java.awt.Rectangle rectBloco = new java.awt.Rectangle(bloco.getX(), bloco.getY(), 40, 40);
+                    
+                    if (rectBloco.intersects(retanguloBala)) {
+                        return true; 
+                    }
+                }
+            }
+        }
+        return false; 
+    }
+}

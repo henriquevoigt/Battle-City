@@ -5,12 +5,7 @@ import java.awt.*;
 
 public class MenuSelecaoMapa extends JPanel {
 
-    private Janela janela;
-    private String nomeJogador;
-
     public MenuSelecaoMapa(Janela janela, String nomeJogador) {
-        this.janela = janela;
-        this.nomeJogador = nomeJogador;
 
         setLayout(new GridBagLayout());
         setBackground(Color.DARK_GRAY);

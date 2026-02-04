@@ -2,9 +2,6 @@ package ufpel.poo.view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 public class MenuPanel extends JPanel {
 
     private Janela janelaPrincipal;
