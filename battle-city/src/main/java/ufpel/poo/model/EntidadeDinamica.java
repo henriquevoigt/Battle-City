@@ -51,7 +51,7 @@ public abstract class EntidadeDinamica {
         }
     }
 
-    public Rectangle getBounds() {
+    public Rectangle getLimites() {
         return new Rectangle(x, y, 40, 40);
     }
 

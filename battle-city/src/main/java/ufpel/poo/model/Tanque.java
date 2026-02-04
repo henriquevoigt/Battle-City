@@ -1,41 +1,39 @@
 package ufpel.poo.model;
 
-import java.awt.Color;
 import java.awt.Graphics;
-
-public class Tanque extends EntidadeDinamica {
+import java.awt.Rectangle;
+public abstract class Tanque extends EntidadeDinamica {
+    
+    protected int vidas;
     
     public Tanque(int x, int y) {
         super(x, y);
+        // default, os filhos vão sobrescrever
+        this.velocidade = 0; 
+        this.vidas = 1;
+    }
+
+    public Projetil atirar() {
+        return new Projetil(this.x, this.y, this.direcao);
+    }
+    
+    public void receberDano() {
+        this.vidas--;
+    }
+    
+    public int getVidas() { 
+        return vidas; 
+    }
+
+    public boolean estaVivo() { 
+        return vidas > 0; 
     }
 
     @Override
-    public void desenhar(Graphics g) {
-        g.setColor(Color.YELLOW);
-        
-        g.fillRect(x + 5, y + 5, 30, 30);
-        
-        g.setColor(new Color(100, 100, 0)); 
-        g.fillRect(x, y + 5, 5, 30);  
-        g.fillRect(x + 35, y + 5, 5, 30); 
-        
-        g.setColor(Color.WHITE);
-        int canhaoL = 4; 
-        int canhaoC = 18;
-        
-        switch (direcao) {
-            case CIMA:
-                g.fillRect(x + 18, y - 2, canhaoL, canhaoC);
-                break;
-            case BAIXO:
-                g.fillRect(x + 18, y + 20, canhaoL, canhaoC);
-                break;
-            case ESQUERDA:
-                g.fillRect(x - 2, y + 18, canhaoC, canhaoL);
-                break;
-            case DIREITA:
-                g.fillRect(x + 20, y + 18, canhaoC, canhaoL);
-                break;
-        }
+    public Rectangle getLimites() {
+        return new Rectangle(x, y, 40, 40);
     }
+
+    public abstract void desenhar(Graphics g); // player é diferente de bot
+
 }
