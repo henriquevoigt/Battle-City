@@ -44,4 +44,11 @@ public class Janela extends JFrame {
         revalidate();
         repaint();
     }
+    public void mostrarRanking() {
+        RankingPanel ranking = new RankingPanel(this);
+        setContentPane(ranking);
+        revalidate();
+        repaint();
+    }
+
 }

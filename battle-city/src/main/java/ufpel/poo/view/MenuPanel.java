@@ -27,6 +27,10 @@ public class MenuPanel extends JPanel {
             }
         });
 
+        btnRanking.addActionListener(e -> {
+            janelaPrincipal.mostrarRanking();
+        });
+
         btnSair.addActionListener(e -> System.exit(0));
 
         GridBagConstraints gbc = new GridBagConstraints();

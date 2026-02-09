@@ -1,0 +1,4 @@
+950;Carlos
+400;Ana
+150;BotTester
+1200;Samuel
