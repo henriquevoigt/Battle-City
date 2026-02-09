@@ -2,3 +2,6 @@
 400;Ana
 150;BotTester
 1200;Samuel
+100;Ftk
+200;Rogerio
+300;Italots

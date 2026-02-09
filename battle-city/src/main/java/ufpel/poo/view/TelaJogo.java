@@ -1,6 +1,7 @@
 package ufpel.poo.view;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.SwingUtilities;
@@ -20,6 +21,7 @@ import java.util.List;
 import ufpel.poo.model.Direcao;
 import ufpel.poo.model.Mapa;
 import ufpel.poo.model.Projetil;
+import ufpel.poo.model.RankingManager;
 import ufpel.poo.model.Jogador;
 import ufpel.poo.model.Inimigo; 
 import ufpel.poo.model.InimigoAgil;
@@ -27,6 +29,8 @@ import ufpel.poo.model.InimigoBlindado;
 import ufpel.poo.model.InimigoDefault;
 
 public class TelaJogo extends JPanel implements ActionListener {
+
+    private String nomeJogador;
 
     // --- ESTADOS DO JOGO ---
     private enum EstadoJogo {
@@ -62,7 +66,7 @@ public class TelaJogo extends JPanel implements ActionListener {
     private final int LARGURA_LOGICA = TAMANHO_MAPA + LARGURA_HUD; // 720px
     private final int ALTURA_LOGICA = TAMANHO_MAPA; // 520px
 
-    public TelaJogo() {
+    public TelaJogo(String nomeJogador) {
         // config do painel
         setBackground(new Color(30, 30, 30));
         setFocusable(true);
@@ -70,6 +74,7 @@ public class TelaJogo extends JPanel implements ActionListener {
         setLayout(null); // layout NULO para posicionar botoes manualmente
         
         // inicializa objetos
+        this.nomeJogador = nomeJogador;
         this.mapa = new Mapa();
         this.jogador = new Jogador(4 * 40, 12 * 40); 
         this.inimigos = new ArrayList<>();
@@ -80,7 +85,7 @@ public class TelaJogo extends JPanel implements ActionListener {
 
         // spawn inicial de teste
         spawnarInimigoTeste(new InimigoAgil(40, 40, this.mapa));
-        spawnarInimigoTeste(new InimigoDefault(240, 40, this.mapa));
+        spawnarInimigoTeste(new InimigoDefault(240, 40, this.mapa, this));
         spawnarInimigoTeste(new InimigoBlindado(440, 40, this.mapa));
 
         // inputs
@@ -226,7 +231,7 @@ public class TelaJogo extends JPanel implements ActionListener {
         
         // respawna inimigos
         spawnarInimigoTeste(new InimigoAgil(40, 40, this.mapa));
-        spawnarInimigoTeste(new InimigoDefault(240, 40, this.mapa));
+        spawnarInimigoTeste(new InimigoDefault(240, 40, this.mapa, this));
         spawnarInimigoTeste(new InimigoBlindado(440, 40, this.mapa));
 
         // se pausado, despausa para voltar a jogar
@@ -305,32 +310,71 @@ public class TelaJogo extends JPanel implements ActionListener {
         }
 
         verificarMorteJogador();
+
     }
 
+    public void adicionarBala(Projetil p) {
+        balas.add(p);
+    }
+
+
+    private void gameOver() {
+        gameLoop.stop();
+
+        RankingManager.salvarPontuacao(nomeJogador, jogador.getPontuacao());
+
+        JOptionPane.showMessageDialog(this,"GAME OVER\nPontuação: " + jogador.getPontuacao());
+
+        SwingUtilities.getWindowAncestor(this).dispose();
+        new Janela();
+        System.out.println("GAME OVER CHAMADO");
+        System.out.println("Pontuação final: " + jogador.getPontuacao());
+    }
+
+
     private void verificarColisoes(Projetil bala) {
-       
-        // tomar cuidado pros inimigos não se matarem uns aos outros, por enquanto apenas o jogador atira
-        
-        for (Inimigo inimigo : inimigos) {
-            if (inimigo.estaVivo() && bala.isAtivo()) {
-                if (bala.getLimites().intersects(inimigo.getLimites())) {
-                    inimigo.receberDano(); 
+
+        if (!bala.isAtivo()) return;
+
+        //  Bala do jogador acerta inimigos
+        if (bala.ehDoJogador()) {
+            for (Inimigo inimigo : inimigos) {
+                if (inimigo.estaVivo() && bala.getLimites().intersects(inimigo.getLimites())) {
+                    inimigo.receberDano();
                     bala.setAtivo(false);
+
+                    if (!inimigo.estaVivo()) {
+                        jogador.adicionarPontos(100);
+                    }
+                    return;
                 }
+            }
+        }
+        //  Bala do inimigo acerta jogador
+        else {
+            if (jogador != null && jogador.estaVivo() &&
+                bala.getLimites().intersects(jogador.getLimites())) {
+
+                jogador.receberDano(); // jogador perde vida
+                bala.setAtivo(false);
             }
         }
     }
 
+
     public void verificarMorteJogador() {
-        if (jogador != null && !jogador.estaVivo()) {
+        if (jogador != null && jogador.getVidas() <= 0) {
             vidasJogador--;
-            if (vidasJogador > 0) {
-                jogador = new Jogador(4 * 40, 12 * 40); // respawn
-            } else {
-                estadoAtual = EstadoJogo.GAME_OVER;
-                gameLoop.stop();
-                System.out.println("GAME OVER");
-            }
+
+        if (vidasJogador > 0) {
+            int pontosAtuais = jogador.getPontuacao(); // guarda pontos
+
+            jogador = new Jogador(4 * 40, 12 * 40); // cria novo tanque
+
+            jogador.setPontuacao(pontosAtuais); // devolve os pontos
+        } else {
+            gameOver();
+          }   
         }
     }
 
@@ -390,7 +434,8 @@ public class TelaJogo extends JPanel implements ActionListener {
         
         g2d.drawString("JOGADOR 1", TAMANHO_MAPA + 20, 150);
         g2d.drawString("Vidas: " + vidasJogador, TAMANHO_MAPA + 20, 180);
-        
+        g2d.drawString("Pontos: " + jogador.getPontuacao(), TAMANHO_MAPA + 20, 210);
+
         g2d.drawString("FASE 1", TAMANHO_MAPA + 20, 400);
 
         // bordas

@@ -50,10 +50,13 @@ public class RankingPanel extends JPanel {
 
             while ((linha = br.readLine()) != null) {
                 String[] partes = linha.split(";");
-                lista.add(partes);
+                if (partes.length == 2) {
+                    lista.add(partes);
+                }
             }
 
-            // ordenar por pontuação (decrescente)
+            br.close();
+
             lista.sort((a, b) -> Integer.parseInt(b[0]) - Integer.parseInt(a[0]));
 
             for (String[] jogador : lista) {
@@ -62,6 +65,7 @@ public class RankingPanel extends JPanel {
 
         } catch (Exception e) {
             area.setText("Erro ao carregar ranking.");
+            e.printStackTrace();
         }
     }
 }

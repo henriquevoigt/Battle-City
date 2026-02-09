@@ -14,6 +14,10 @@ public class Jogador extends Tanque {
 
     }
 
+    public Projetil atirar() {
+        return new Projetil(this.x, this.y, this.direcao,true);
+    }
+
     @Override
 
     public void desenhar(Graphics g) {

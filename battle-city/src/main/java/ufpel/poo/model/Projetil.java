@@ -6,15 +6,22 @@ import java.awt.Rectangle;
 
 public class Projetil extends EntidadeDinamica {
 
+    private boolean doJogador;
+
     private boolean ativo; 
 
-    public Projetil(int x, int y, Direcao direcao) {
+    public Projetil(int x, int y, Direcao direcao, boolean doJogador) {
         super(x, y);
         this.direcao = direcao;
         this.velocidade = 8; 
         this.ativo = true;
+        this.doJogador = doJogador;
         
         ajustarPosicaoSaida(); // tanque tem 40x40, a bala 6x6
+    }
+
+    public boolean ehDoJogador() {
+        return doJogador;
     }
 
     private void ajustarPosicaoSaida() {

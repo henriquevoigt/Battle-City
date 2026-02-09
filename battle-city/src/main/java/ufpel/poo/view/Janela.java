@@ -35,7 +35,7 @@ public class Janela extends JFrame {
         System.out.println("Iniciando jogo para: " + nomeJogador);
         System.out.println("Mapa escolhido: " + indiceMapa);
 
-        TelaJogo jogo = new TelaJogo();
+        TelaJogo jogo = new TelaJogo(nomeJogador);
         jogo.carregarMapa(indiceMapa);
 
         setContentPane(jogo);

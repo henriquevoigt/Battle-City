@@ -2,31 +2,45 @@ package ufpel.poo.model;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
+
 public abstract class Tanque extends EntidadeDinamica {
-    
+
     protected int vidas;
-    
+    protected int pontuacao;   // ← AQUI!
+
     public Tanque(int x, int y) {
         super(x, y);
-        // default, os filhos vão sobrescrever
-        this.velocidade = 0; 
+        this.velocidade = 0;
         this.vidas = 1;
+        this.pontuacao = 0;    // ← INICIALIZA
     }
 
-    public Projetil atirar() {
-        return new Projetil(this.x, this.y, this.direcao);
+    // 🔥 MÉTODOS DE PONTUAÇÃO (OBRIGATÓRIOS)
+    public void adicionarPontos(int pontos) {
+        this.pontuacao += pontos;
     }
-    
+
+    public int getPontuacao() {
+        return pontuacao;
+    }
+
+    public void setPontuacao(int pontos) {
+        this.pontuacao = pontos;
+    }
+
+    // VIDA
     public void receberDano() {
-        this.vidas--;
-    }
-    
-    public int getVidas() { 
-        return vidas; 
+        if(vidas > 0){
+            this.vidas--;
+        }
     }
 
-    public boolean estaVivo() { 
-        return vidas > 0; 
+    public int getVidas() {
+        return vidas;
+    }
+
+    public boolean estaVivo() {
+        return vidas > 0;
     }
 
     @Override
@@ -34,6 +48,5 @@ public abstract class Tanque extends EntidadeDinamica {
         return new Rectangle(x, y, 40, 40);
     }
 
-    public abstract void desenhar(Graphics g); // player é diferente de bot
-
+    public abstract void desenhar(Graphics g);
 }
