@@ -8,11 +8,8 @@ import java.util.List;
 
 public class RankingPanel extends JPanel {
 
-    private Janela janela;
-
     public RankingPanel(Janela janela) {
-        this.janela = janela;
-
+        
         setLayout(new BorderLayout());
         setBackground(Color.BLACK);
 
@@ -27,24 +24,33 @@ public class RankingPanel extends JPanel {
         areaRanking.setBackground(Color.BLACK);
         areaRanking.setForeground(Color.WHITE);
 
-        carregarRanking(areaRanking);
-
         JScrollPane scroll = new JScrollPane(areaRanking);
+        scroll.setBorder(null); 
         add(scroll, BorderLayout.CENTER);
 
         JButton btnVoltar = new JButton("Voltar ao Menu");
+        btnVoltar.setPreferredSize(new Dimension(200, 50));
+
         btnVoltar.addActionListener(e -> janela.mostrarMenu());
 
         JPanel painelSul = new JPanel();
+        painelSul.setBackground(Color.BLACK); 
         painelSul.add(btnVoltar);
         add(painelSul, BorderLayout.SOUTH);
+        
+        carregarRanking(areaRanking);
     }
 
     private void carregarRanking(JTextArea area) {
-        try {
-            InputStream is = getClass().getResourceAsStream("/ranking.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        File arquivo = new File("ranking.txt");
 
+        if (!arquivo.exists()) {
+            area.setText("\n\n      Nenhum recorde salvo ainda.\n      Jogue para entrar no Rank!");
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            
             List<String[]> lista = new ArrayList<>();
             String linha;
 
@@ -55,12 +61,26 @@ public class RankingPanel extends JPanel {
                 }
             }
 
-            br.close();
+            if (lista.isEmpty()) {
+                area.setText("\n\n      Nenhum recorde salvo ainda.");
+                return;
+            }
 
-            lista.sort((a, b) -> Integer.parseInt(b[0]) - Integer.parseInt(a[0]));
+            lista.sort((a, b) -> {
+                try {
+                    int pontosA = Integer.parseInt(a[0].trim());
+                    int pontosB = Integer.parseInt(b[0].trim());
+                    return pontosB - pontosA; 
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            });
+
+            area.setText(String.format("%-15s %s\n", "NOME", "PONTOS"));
+            area.append("----------------------------\n");
 
             for (String[] jogador : lista) {
-                area.append(String.format("%-10s %s\n", jogador[0], jogador[1]));
+                area.append(String.format("%-15s %s\n", jogador[1], jogador[0]));
             }
 
         } catch (Exception e) {

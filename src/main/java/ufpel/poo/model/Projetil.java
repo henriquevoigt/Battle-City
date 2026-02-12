@@ -7,15 +7,21 @@ import java.awt.Rectangle;
 public class Projetil extends EntidadeDinamica {
 
     private boolean doJogador;
-
     private boolean ativo; 
+    private Tanque dono; 
 
-    public Projetil(int x, int y, Direcao direcao, boolean doJogador) {
+    // construtor recebe o objeto Tanque
+    public Projetil(int x, int y, Direcao direcao, Tanque dono) {
         super(x, y);
         this.direcao = direcao;
+        this.dono = dono;
+        
         this.velocidade = 8; 
         this.ativo = true;
-        this.doJogador = doJogador;
+        
+        this.doJogador = (dono instanceof Jogador);
+        
+        this.dono.registrarDisparo();
         
         ajustarPosicaoSaida(); // tanque tem 40x40, a bala 6x6
     }
@@ -42,7 +48,7 @@ public class Projetil extends EntidadeDinamica {
         }
 
         if (x < -20 || x > 540 || y < -20 || y > 540) { // verifica se saiu da tela
-            ativo = false;
+            setAtivo(false); 
             return;
         }
         
@@ -57,6 +63,11 @@ public class Projetil extends EntidadeDinamica {
 
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
+        
+        // Se a bala morreu (false), avisa o dono que ele pode atirar de novo
+        if (!ativo) {
+            dono.recarregar();
+        }
     }
 
     @Override
@@ -66,7 +77,11 @@ public class Projetil extends EntidadeDinamica {
 
     @Override
     public void desenhar(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.fillOval(x, y, 6, 6); // Desenha uma bolinha branca
+        if (doJogador) {
+            g.setColor(Color.WHITE);
+        } else {
+            g.setColor(Color.RED); 
+        }
+        g.fillOval(x, y, 6, 6); 
     }
 }
