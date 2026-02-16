@@ -13,6 +13,7 @@ public class BlocoFactory {
             case 2: return new Arvore(x, y);
             case 3: return new Agua(x, y);
             case 4: return new Aco(x, y);
+            case 5: return new Base(x, y);
             default: return new Vazio(x, y);
         }
     } 

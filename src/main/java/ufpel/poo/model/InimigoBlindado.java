@@ -7,28 +7,38 @@ import ufpel.poo.view.TelaJogo;
 public class InimigoBlindado extends Inimigo {
 
     public InimigoBlindado(int x, int y, Mapa mapa, TelaJogo tela) {
-        super(x, y, mapa, tela);
-        
+        super(x, y, mapa, tela); 
+                
         this.velocidade = 1; 
-        this.vidas = 4;      
+        
+        setVidas(4); 
+        
         this.pontuacao = 400;
         this.direcao = Direcao.BAIXO;
     }
 
     @Override
+    public int getPontuacao() {
+        return this.pontuacao;
+    }
+
+    @Override
     public void run() {
         while (this.estaVivo()) {
+            
+            if (TelaJogo.jogoPausado) {
+                try { Thread.sleep(100); } catch (Exception e) {}
+                continue;
+            }
+
+            movimentoAleatorio();
+ 
+            if (random.nextInt(100) < 1) {
+                tentarAtirar();
+            }
+
             try {
-                
-                Thread.sleep(2500); 
-
-                if (this.podeAtirar()) {
-                    Projetil p = new Projetil(this.x, this.y, this.direcao, this);
-                    tela.adicionarBala(p);
-                }
-                
-                // implementar logica de movimento aqui
-
+                Thread.sleep(16); // 60 FPS
             } catch (InterruptedException e) {
                 break;
             }
@@ -37,12 +47,14 @@ public class InimigoBlindado extends Inimigo {
 
     @Override
     public void desenhar(Graphics g) {
-        // muda a cor conforme o dano sofrido
-        if (vidas >= 4) g.setColor(new Color(0, 100, 0));       // verde Escuro
-        else if (vidas == 3) g.setColor(new Color(50, 150, 50));
-        else if (vidas == 2) g.setColor(new Color(100, 200, 100));
-        else g.setColor(new Color(150, 250, 150));              // quase morrendo
-        
+        g.setColor(new Color(220, 220, 220)); // Cinza
         g.fillRect(x, y, 40, 40);
+        g.setColor(Color.BLACK);
+
+        // canhão
+        if (direcao == Direcao.BAIXO)      g.fillRect(x+18, y+20, 4, 20);
+        else if (direcao == Direcao.CIMA)  g.fillRect(x+18, y, 4, 20);
+        else if (direcao == Direcao.ESQUERDA) g.fillRect(x, y+18, 20, 4);
+        else if (direcao == Direcao.DIREITA)  g.fillRect(x+20, y+18, 20, 4);
     }
 }

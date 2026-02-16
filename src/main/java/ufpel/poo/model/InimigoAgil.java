@@ -7,28 +7,38 @@ import ufpel.poo.view.TelaJogo;
 public class InimigoAgil extends Inimigo {
 
     public InimigoAgil(int x, int y, Mapa mapa, TelaJogo tela) {
-        super(x, y, mapa, tela);
+        super(x, y, mapa, tela); 
+                
+        this.velocidade = 3; 
         
+        setVidas(1); 
         
-        this.velocidade = 4; 
-        this.vidas = 1;      
         this.pontuacao = 200;
         this.direcao = Direcao.BAIXO;
     }
 
     @Override
+    public int getPontuacao() {
+        return this.pontuacao;
+    }
+
+    @Override
     public void run() {
         while (this.estaVivo()) {
+            
+            if (TelaJogo.jogoPausado) {
+                try { Thread.sleep(100); } catch (Exception e) {}
+                continue;
+            }
+
+            movimentoAleatorio();
+ 
+            if (random.nextInt(100) < 1) {
+                tentarAtirar();
+            }
+
             try {
-                Thread.sleep(1500); 
-
-                if (this.podeAtirar()) {
-                    Projetil p = new Projetil(this.x, this.y, this.direcao, this);
-                    tela.adicionarBala(p);
-                }
-                
-                // implementar logica de movimento aqui
-
+                Thread.sleep(16); // 60 FPS
             } catch (InterruptedException e) {
                 break;
             }
@@ -37,7 +47,14 @@ public class InimigoAgil extends Inimigo {
 
     @Override
     public void desenhar(Graphics g) {
-        g.setColor(new Color(100, 255, 100)); // verde claro
+        g.setColor(new Color(220, 220, 220)); // Cinza
         g.fillRect(x, y, 40, 40);
+        g.setColor(Color.BLACK);
+
+        // canhão
+        if (direcao == Direcao.BAIXO)      g.fillRect(x+18, y+20, 4, 20);
+        else if (direcao == Direcao.CIMA)  g.fillRect(x+18, y, 4, 20);
+        else if (direcao == Direcao.ESQUERDA) g.fillRect(x, y+18, 20, 4);
+        else if (direcao == Direcao.DIREITA)  g.fillRect(x+20, y+18, 20, 4);
     }
 }

@@ -3,7 +3,7 @@ package ufpel.poo.model;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
-public abstract class EntidadeDinamica {
+public abstract class EntidadeDinamica implements IMovel, IDesenhavel {
     protected int x, y;
     protected int velocidade;
     protected Direcao direcao;
@@ -15,9 +15,15 @@ public abstract class EntidadeDinamica {
         this.direcao = Direcao.CIMA;
     }
 
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public Direcao getDirecao() { return direcao; }
+    public int getX() { 
+        return x; 
+    }
+    public int getY() { 
+        return y; 
+    }
+    public Direcao getDirecao() { 
+        return direcao; 
+    }
     
     public void setDirecao(Direcao direcao) { 
         this.direcao = direcao; 
@@ -25,11 +31,11 @@ public abstract class EntidadeDinamica {
 
     public void mover(Mapa mapa) {
         
-        int novoX = this.x; // local que está
+        int novoX = this.x;
         int novoY = this.y;
 
         
-        switch (this.direcao) { // local que quer ir
+        switch (this.direcao) {
             case CIMA:    novoY -= velocidade; break;
             case BAIXO:   novoY += velocidade; break;
             case ESQUERDA: novoX -= velocidade; break;
@@ -45,7 +51,6 @@ public abstract class EntidadeDinamica {
 
         // verifica se pode andar
         if (!mapa.temColisao(retanguloFuturo)) {
-            // se o mapa disse que não tem colisão, anda
             this.x = novoX;
             this.y = novoY;
         }

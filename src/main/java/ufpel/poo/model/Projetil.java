@@ -3,31 +3,35 @@ package ufpel.poo.model;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import ufpel.poo.view.TelaJogo;
 
-public class Projetil extends EntidadeDinamica {
+public class Projetil extends EntidadeDinamica implements Runnable {
 
     private boolean doJogador;
     private boolean ativo; 
     private Tanque dono; 
+    
+    private Mapa mapa; 
+    private Thread thread; 
 
-    // construtor recebe o objeto Tanque
-    public Projetil(int x, int y, Direcao direcao, Tanque dono) {
+    public Projetil(int x, int y, Direcao direcao, Tanque dono, Mapa mapa) {
         super(x, y);
         this.direcao = direcao;
         this.dono = dono;
+        this.mapa = mapa;
         
-        this.velocidade = 8; 
+        this.velocidade = 6;
+        
         this.ativo = true;
-        
         this.doJogador = (dono instanceof Jogador);
-        
-        this.dono.registrarDisparo();
-        
-        ajustarPosicaoSaida(); // tanque tem 40x40, a bala 6x6
-    }
 
-    public boolean ehDoJogador() {
-        return doJogador;
+        if (this.dono != null) {
+            this.dono.registrarDisparo();
+        }
+        
+        ajustarPosicaoSaida(); 
+        this.thread = new Thread(this);
+        this.thread.start();
     }
 
     private void ajustarPosicaoSaida() {
@@ -39,7 +43,32 @@ public class Projetil extends EntidadeDinamica {
         }
     }
 
-    public void moverBala(Mapa mapa) {
+    @Override
+    public void run() {
+        while (ativo) {
+
+            if (TelaJogo.jogoPausado) {
+                try { 
+                    Thread.sleep(100);
+                } catch (InterruptedException e) { 
+                    e.printStackTrace(); 
+                }
+                continue; // pula o resto do loop (não move)
+            }
+
+            mover();
+            
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void mover() {
+        if (!ativo) return;
+
         switch (direcao) {
             case CIMA:     y -= velocidade; break;
             case BAIXO:    y += velocidade; break;
@@ -47,12 +76,12 @@ public class Projetil extends EntidadeDinamica {
             case DIREITA:  x += velocidade; break;
         }
 
-        if (x < -20 || x > 540 || y < -20 || y > 540) { // verifica se saiu da tela
+        if (x < -20 || x > 540 || y < -20 || y > 540) { 
             setAtivo(false); 
             return;
         }
-        
-        if (mapa.temColisaoProjetil(this.getLimites())) { 
+
+        if (mapa.processarColisaoProjetil(this.getLimites())) { 
              setAtivo(false);
         }
     }
@@ -60,12 +89,15 @@ public class Projetil extends EntidadeDinamica {
     public boolean isAtivo(){ 
         return ativo;
     }
+    
+    public boolean ehDoJogador() {
+        return doJogador;
+    }
 
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
-        
-        // Se a bala morreu (false), avisa o dono que ele pode atirar de novo
-        if (!ativo) {
+   
+        if (!ativo && dono != null) {
             dono.recarregar();
         }
     }
@@ -78,7 +110,7 @@ public class Projetil extends EntidadeDinamica {
     @Override
     public void desenhar(Graphics g) {
         if (doJogador) {
-            g.setColor(Color.WHITE);
+            g.setColor(Color.WHITE); 
         } else {
             g.setColor(Color.RED); 
         }

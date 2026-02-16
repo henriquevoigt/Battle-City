@@ -14,7 +14,8 @@ public class Vazio extends Bloco {
     }
 
     @Override
-    public void receberImpacto(int forca) {
+    public boolean receberDano(int dano) {
+        return false; 
     }
 
     @Override

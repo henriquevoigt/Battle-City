@@ -11,19 +11,18 @@ public class Arvore extends Bloco {
 
     @Override
     public boolean ehTransponivel() {
-        return true;
+        return true; 
     }
 
     @Override
-    public void receberImpacto(int forca) {
+    public boolean receberDano(int dano) {
+        return false; 
     }
 
     @Override
     public void desenhar(Graphics g) {
-
         g.setColor(new Color(0, 100, 0));
         g.fillRect(x, y, 40, 40);
-        
         g.setColor(new Color(34, 139, 34)); 
         g.fillOval(x + 5, y + 5, 15, 15);
         g.fillOval(x + 20, y + 5, 15, 15);
@@ -32,7 +31,6 @@ public class Arvore extends Bloco {
 
     @Override
     public boolean permiteTiro() { 
-        return true;
+        return true; 
     }
-
 }

@@ -4,38 +4,34 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 public class Aco extends Bloco {
-    private boolean destruido = false;
 
-    public Aco(int x, int y) {
-        super(x, y);
+    public Aco(int x, int y) { 
+        super(x, y); 
     }
 
     @Override
-    public boolean ehTransponivel() {
-        return destruido;
-    }
+    public boolean ehTransponivel() { 
+        return false; 
+    } 
 
     @Override
-    public void receberImpacto(int forca) {
-        if (forca > 1) {
-            this.destruido = true;
+    public boolean receberDano(int dano) {
+        if (dano > 1) {
+            return true; 
         }
-    }
-
-    @Override
-    public void desenhar(Graphics g) {
-        if (!destruido) {
-            g.setColor(Color.LIGHT_GRAY); 
-            g.fillRect(x, y, 40, 40);
-            
-            g.setColor(Color.WHITE);
-            g.drawRect(x + 10, y + 10, 20, 20);
-        }
+        return false;
     }
 
     @Override
     public boolean permiteTiro() { 
         return false; 
-    }
+    } 
 
+    @Override
+    public void desenhar(Graphics g) {
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(x, y, 40, 40);
+        g.setColor(Color.WHITE); 
+        g.drawRect(x+5, y+5, 30, 30);
+    }
 }
