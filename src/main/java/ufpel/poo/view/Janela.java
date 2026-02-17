@@ -1,6 +1,7 @@
 package ufpel.poo.view;
 
 import javax.swing.JFrame;
+import ufpel.poo.model.ConfiguracaoJogo;
 
 public class Janela extends JFrame {
 
@@ -24,23 +25,23 @@ public class Janela extends JFrame {
 
     // chamada APÓS clicar em "Jogar"
     public void mostrarSelecaoMapa(String nomeJogador) {
-        MenuSelecaoMapa menuMapa = new MenuSelecaoMapa(this, nomeJogador);
-        setContentPane(menuMapa);
+        // Mudamos para a nova classe MenuConfiguracao
+        MenuConfiguracao menuConf = new MenuConfiguracao(this, nomeJogador);
+        setContentPane(menuConf);
         revalidate();
         repaint();
     }
 
-    // chamada APÓS escolher o mapa
-    public void iniciarJogo(String nomeJogador, int indiceMapa) {
+    // chamada APÓS clicar em "Iniciar Missão"
+    // AGORA RECEBE O OBJETO CONFIGURACAO
+    public void iniciarJogo(String nomeJogador, ConfiguracaoJogo config) {
         System.out.println("Iniciando jogo para: " + nomeJogador);
-        System.out.println("Mapa escolhido: " + indiceMapa);
-
-        TelaJogo jogo = new TelaJogo(nomeJogador);
-        jogo.carregarMapa(indiceMapa);
-
+        
+        TelaJogo jogo = new TelaJogo(nomeJogador, config); // Passamos a config para o jogo
+        // O carregamento do mapa agora acontece dentro da TelaJogo usando a config
+        
         setContentPane(jogo);
         jogo.requestFocusInWindow();
-
         revalidate();
         repaint();
     }

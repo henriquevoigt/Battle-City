@@ -76,7 +76,7 @@ public class Projetil extends EntidadeDinamica implements Runnable {
             case DIREITA:  x += velocidade; break;
         }
 
-        if (x < -20 || x > 540 || y < -20 || y > 540) { 
+        if (x < 0 || x > 514 || y <  0 || y > 514) { 
             setAtivo(false); 
             return;
         }

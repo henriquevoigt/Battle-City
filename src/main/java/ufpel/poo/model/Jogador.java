@@ -2,22 +2,41 @@ package ufpel.poo.model;
 
 import java.awt.Color;
 import java.awt.Graphics;
-
 public class Jogador extends Tanque {
     
     private int estoqueVidas;
     private int pontuacao;    
     private int xInicial, yInicial; 
+    private TipoTanque tipo;
 
-    public Jogador(int x, int y) {
+    public Jogador(int x, int y, TipoTanque tipo) {
         super(x, y);
         this.xInicial = x;
-        this.yInicial = y;
-        this.velocidade = 2;
-        setVidas(1);     
+        this.yInicial = y;   
         this.estoqueVidas = 2;
         this.pontuacao = 0;
         this.direcao = Direcao.CIMA;
+        this.tipo = tipo;
+
+        configurarAtributos(tipo);
+    }
+
+    private void configurarAtributos(TipoTanque tipo) {
+        switch (tipo) {
+            case AGIL:
+                this.velocidade = 3;
+                setVidas(1);   
+                break;
+            case BLINDADO:
+                this.velocidade = 1; 
+                setVidas(2);         
+                break;
+            case BALANCEADO:
+            default:
+                this.velocidade = 2; 
+                setVidas(1);
+                break;
+        }
     }
 
     public void adicionarPontos(int pontos) {
@@ -49,7 +68,7 @@ public class Jogador extends Tanque {
         if (estoqueVidas > 0) {
             estoqueVidas--; 
 
-            setVidas(1); 
+            configurarAtributos(this.tipo); 
             
             this.setAtivo(true);
             this.x = xInicial; 
@@ -57,12 +76,20 @@ public class Jogador extends Tanque {
             this.direcao = Direcao.CIMA;
             this.balasAtivas = 0;
             
-            return true; 
+            return true;
         }
         
         // acabou o jogo
         this.setAtivo(false);
         return false; 
+    }
+
+    public void resetarParaNovaFase() {
+        this.x = xInicial;
+        this.y = yInicial;
+        this.direcao = Direcao.CIMA;
+        this.balasAtivas = 0;
+        this.setAtivo(true);
     }
 
     @Override
