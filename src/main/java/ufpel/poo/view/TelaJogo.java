@@ -16,23 +16,23 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;      
+import java.awt.Rectangle;
 
 import ufpel.poo.model.Direcao;
+import ufpel.poo.model.IValidadorMovimento;
+import ufpel.poo.model.EntidadeDinamica;
+import ufpel.poo.model.GerenciadorInimigos;
 import ufpel.poo.model.Mapa;
 import ufpel.poo.model.Projetil;
 import ufpel.poo.model.RankingManager;
 import ufpel.poo.model.Jogador;
 import ufpel.poo.model.Inimigo; 
-import ufpel.poo.model.InimigoAgil;
-import ufpel.poo.model.InimigoBlindado;
-import ufpel.poo.model.InimigoDefault;
 import ufpel.poo.model.ConfiguracaoJogo;
 import ufpel.poo.model.Dificuldade;
 
-public class TelaJogo extends JPanel implements ActionListener {
+public class TelaJogo extends JPanel implements ActionListener, IValidadorMovimento {
 
     private String nomeJogador;
-
     private ConfiguracaoJogo config;
 
     private enum EstadoJogo {
@@ -42,13 +42,11 @@ public class TelaJogo extends JPanel implements ActionListener {
     }
 
     private EstadoJogo estadoAtual = EstadoJogo.JOGANDO;
- 
     public static boolean jogoPausado = false;
 
     private Mapa mapa;
     private Jogador jogador;
     private List<Inimigo> inimigos;
-   
     private List<Projetil> balas; 
 
     private boolean cima, baixo, esquerda, direita; 
@@ -60,7 +58,16 @@ public class TelaJogo extends JPanel implements ActionListener {
     private JButton btnContinuar;
     private JButton btnReiniciar;
     private JButton btnSair;
- 
+
+    // Variáveis de Tempo e Spawn
+    private long momentoInicioFase; 
+    private long duracaoFaseAtual;
+    private long tempoRestanteVisual; 
+    private GerenciadorInimigos spawner; // O Gerenciador
+    
+    // Checkpoint
+    private Jogador.Memento estadoInicioFase;
+
     private final int TAMANHO_MAPA = 520;
     private final int LARGURA_HUD = 200;
     private final int LARGURA_LOGICA = TAMANHO_MAPA + LARGURA_HUD; 
@@ -77,15 +84,27 @@ public class TelaJogo extends JPanel implements ActionListener {
         this.mapa = new Mapa();
         this.inimigos = new ArrayList<>();
         this.balas = new ArrayList<>();
+        
+        // Inicializa o Gerenciador de Inimigos
+        this.spawner = new GerenciadorInimigos();
 
         carregarMapa(config.getIndiceMapa());
 
-        this.jogador = new Jogador(4 * 40, 12 * 40, config.getTipoTanque()); 
+        this.jogador = new Jogador(2 * 40, 12 * 40, config.getTipoTanque()); 
+        
+        // Salva o estado inicial (Vidas e Pontos)
+        this.estadoInicioFase = jogador.criarMemento();
 
         inicializarBotoes();
 
         definirQuantidadeInicialInimigos();
-        spawnarInimigosDaFase();
+
+        // Configura o Spawner com a quantidade total da fase
+        spawner.iniciarFase(this.qtdInimigosAtual);
+
+        // Configura o Tempo
+        this.duracaoFaseAtual = calcularDuracaoDaFase();
+        this.momentoInicioFase = System.currentTimeMillis();
 
         configurarInputs();
 
@@ -133,6 +152,28 @@ public class TelaJogo extends JPanel implements ActionListener {
         });
     }
 
+    @Override
+    public synchronized boolean isPosicaoLivre(Rectangle rectFuturo, EntidadeDinamica quemSolicitou) {
+        if (mapa.temColisao(rectFuturo)) {
+            return false;
+        }
+
+        if (quemSolicitou != jogador && jogador != null && jogador.estaVivo()) {
+            if (rectFuturo.intersects(jogador.getLimites())) {
+                return false;
+            }
+        }
+
+        for (Inimigo inimigo : inimigos) {
+            if (inimigo != quemSolicitou && inimigo.estaVivo()) {
+                if (rectFuturo.intersects(inimigo.getLimites())) {
+                    return false;
+                }
+            }
+        }
+        return true; 
+    }
+
     public void carregarMapa(int indiceMapa) {
         if (this.mapa == null) this.mapa = new Mapa();
         this.mapa.carregarMapaDeArquivo("maps.txt", indiceMapa);
@@ -169,6 +210,13 @@ public class TelaJogo extends JPanel implements ActionListener {
         return btn;
     }
 
+    private long calcularDuracaoDaFase() {
+        long base = 60;
+        long bonusPorInimigo = qtdInimigosAtual * 10;
+        long bonusPorFase = faseAtual * 15;
+        return (base + bonusPorInimigo + bonusPorFase) * 1000; 
+    }
+
     private void alternarPausa() {
         if (estadoAtual == EstadoJogo.JOGANDO) {
             estadoAtual = EstadoJogo.PAUSADO;
@@ -203,88 +251,37 @@ public class TelaJogo extends JPanel implements ActionListener {
         cima = false; baixo = false; esquerda = false; direita = false;
     }
 
-    private boolean isPosicaoLivre(int x, int y) {
-    
-        java.awt.Rectangle rect = new java.awt.Rectangle(x + 2, y + 2, 36, 36);
-
-        if (mapa.temColisao(rect)) return false;
-
-        for (int i = 0; i < inimigos.size(); i++) {
-            Inimigo existente = inimigos.get(i);
-            if (existente.estaVivo() && existente.getLimites().intersects(rect)) {
-                return false;
-            }
-        }
-
-        if (jogador != null && jogador.estaVivo() && jogador.getLimites().intersects(rect)) {
-            return false;
-        }
-
-        return true; // Caminho livre!
-    }
-
-    private void spawnarInimigosDaFase() {
-        int qtdParaSpawnar = this.qtdInimigosAtual;
-        Dificuldade dif = config.getDificuldade();
-
-        int gerados = 0;
-        int tentativas = 0;
-
-        while (gerados < qtdParaSpawnar && tentativas < 200) {
-            tentativas++;
-            int gridX = new java.util.Random().nextInt(13);
-            int x = gridX * 40;
-            int y = (tentativas > 50) ? 80 : 40; 
-
-            if (isPosicaoLivre(x, y)) {
-                Inimigo inimigo = criarInimigoPorDificuldade(dif, gerados, x, y);
-                spawnarInimigoTeste(inimigo);
-                gerados++;
-            }
-        }
-    }
-
-    private Inimigo criarInimigoPorDificuldade(Dificuldade dif, int index, int x, int y) {
-         if (dif == Dificuldade.FACIL) {
-            if (index == 1) {
-                return new InimigoAgil(x, y, mapa, this);
-            }
-            return new InimigoDefault(x, y, mapa, this);
-         } 
-         else if (dif == Dificuldade.MEDIO) {
-            if (index % 2 != 0) {
-                return new InimigoAgil(x, y, mapa, this);
-            }
-            return new InimigoDefault(x, y, mapa, this);
-         } 
-         else {
-            if (index % 3 == 0) {
-                return new InimigoBlindado(x, y, mapa, this);
-            }
-            else if (index % 3 == 1) {
-                return new InimigoAgil(x, y, mapa, this);
-            }
-            return new InimigoDefault(x, y, mapa, this);
-         }
-    }
+    // --- MÉTODOS REMOVIDOS ---
+    // spawnarInimigosDaFase() -> REMOVIDO (Delegado ao Spawner)
+    // criarInimigoPorDificuldade() -> REMOVIDO (Delegado ao Spawner)
+    // spawnarInimigoTeste() -> REMOVIDO (Delegado ao Spawner)
 
     private void reiniciarFase() {
-
         for(Projetil p : balas) p.setAtivo(false);
         balas.clear();
 
         for(Inimigo i : inimigos) i.setAtivo(false);
         inimigos.clear();
 
-        int pontuacaoSalva = (this.jogador != null) ? this.jogador.getPontuacao() : 0;
+        // 1. Recalcula quantidade total
+        definirQuantidadeInicialInimigos(); 
+        
+        // 2. Reseta o tempo
+        this.duracaoFaseAtual = calcularDuracaoDaFase();
+        this.momentoInicioFase = System.currentTimeMillis();
 
-        this.jogador = new Jogador(4 * 40, 12 * 40, config.getTipoTanque());
-        this.jogador.adicionarPontos(pontuacaoSalva); 
+        // 3. Recria Jogador e restaura Memento
+        this.jogador = new Jogador(2 * 40, 12 * 40, config.getTipoTanque());
+        if (this.estadoInicioFase != null) {
+            this.jogador.restaurarMemento(this.estadoInicioFase);
+        }
 
-        int indiceMapaFase = (config.getIndiceMapa() + faseAtual - 1) % 3;
+        // 4. Carrega Mapa
+        int indiceMapaFase = (config.getIndiceMapa() + faseAtual - 1) % 3; // Ajustar se tiver 5 mapas
         carregarMapa(indiceMapaFase); 
 
-        spawnarInimigosDaFase();
+        // 5. Reinicia o Spawner
+        spawner.iniciarFase(this.qtdInimigosAtual);
 
         if (estadoAtual == EstadoJogo.PAUSADO) {
             alternarPausa();
@@ -304,12 +301,6 @@ public class TelaJogo extends JPanel implements ActionListener {
         }
     }
 
-    private void spawnarInimigoTeste(Inimigo inimigo) {
-        inimigos.add(inimigo);
-        Thread t = new Thread(inimigo);
-        t.start();
-    }
-
     // --- GAME LOOP ---
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -321,29 +312,53 @@ public class TelaJogo extends JPanel implements ActionListener {
 
     private void atualizarJogo() {
         if (cima) { 
-            jogador.setDirecao(Direcao.CIMA); jogador.mover(mapa); 
+            jogador.setDirecao(Direcao.CIMA); 
+            jogador.mover(this);
         }
         else if (baixo) { 
-            jogador.setDirecao(Direcao.BAIXO); jogador.mover(mapa); 
+            jogador.setDirecao(Direcao.BAIXO); 
+            jogador.mover(this); 
         }
         else if (esquerda) { 
-            jogador.setDirecao(Direcao.ESQUERDA); jogador.mover(mapa); 
+            jogador.setDirecao(Direcao.ESQUERDA); 
+            jogador.mover(this); 
         }
         else if (direita) { 
-            jogador.setDirecao(Direcao.DIREITA); jogador.mover(mapa); 
+            jogador.setDirecao(Direcao.DIREITA); 
+            jogador.mover(this); 
+        }
+
+        // --- GERENCIADOR DE INIMIGOS ---
+        // O Spawner decide se cria novos inimigos agora
+        spawner.atualizar(inimigos, mapa, this, config.getDificuldade());
+
+        // --- TEMPO ---
+        long agora = System.currentTimeMillis();
+        long tempoDecorrido = agora - momentoInicioFase;
+        
+        long tempoRestanteMs = duracaoFaseAtual - tempoDecorrido;
+        this.tempoRestanteVisual = tempoRestanteMs / 1000;
+
+        if (tempoRestanteMs <= 0) {
+            this.tempoRestanteVisual = 0;
+            JOptionPane.showMessageDialog(this, "Tempo Esgotado! Vitória por Resistência!");
+            avancarParaProximaFase();
+            return;
         }
 
         verificarColisoesGlobais();
 
-        // limpeza de objetos mortos
+        // Limpeza de objetos mortos
         balas.removeIf(p -> !p.isAtivo());
         inimigos.removeIf(i -> !i.estaVivo());
 
-        if (inimigos.isEmpty()) {
+        // --- CONDIÇÃO DE VITÓRIA ATUALIZADA ---
+        // Só ganha se não tem inimigos na tela E o estoque do Spawner acabou
+        if (inimigos.isEmpty() && spawner.getPendentes() == 0) {
             avancarParaProximaFase();
         }
 
-        // checa GameOver
+        // Checa GameOver
         if (mapa.verificarGameOver()) {
             gameOver("BASE DESTRUÍDA!");
         } else {
@@ -358,26 +373,23 @@ public class TelaJogo extends JPanel implements ActionListener {
     private void gameOver(String motivo) {
         estadoAtual = EstadoJogo.GAME_OVER;
         gameLoop.stop();
-        jogoPausado = false; // libera threads pra morrerem
+        jogoPausado = false; 
         
         RankingManager.salvarPontuacao(nomeJogador, jogador.getPontuacao());
         JOptionPane.showMessageDialog(this, "GAME OVER\n" + motivo + "\nPontuação: " + jogador.getPontuacao());
 
         java.awt.Window win = SwingUtilities.getWindowAncestor(this);
         if (win != null) win.dispose();
-        new Janela();
+        new Janela(); // Reinicia o app
     }
 
     private void verificarColisoesGlobais() {
-        
         List<Projetil> listaBalas = new ArrayList<>(balas);
 
         for (int i = 0; i < listaBalas.size(); i++) {
             Projetil b1 = listaBalas.get(i);
-            
             for (int j = i + 1; j < listaBalas.size(); j++) {
                 Projetil b2 = listaBalas.get(j);
-                
                 if (b1.isAtivo() && b2.isAtivo()) {
                     if (b1.getLimites().intersects(b2.getLimites())) {
                         if (b1.ehDoJogador() != b2.ehDoJogador()) {
@@ -391,7 +403,6 @@ public class TelaJogo extends JPanel implements ActionListener {
 
         for (Projetil bala : listaBalas) {
             if (!bala.isAtivo()) continue;
-
             if (bala.ehDoJogador()) {
                 for (Inimigo inimigo : inimigos) {
                     if (inimigo.estaVivo() && bala.getLimites().intersects(inimigo.getLimites())) {
@@ -423,25 +434,32 @@ public class TelaJogo extends JPanel implements ActionListener {
     private void avancarParaProximaFase() {
         gameLoop.stop();
         
+        resetarControles();
+
+        // Checkpoint: salva o estado atual
+        this.estadoInicioFase = jogador.criarMemento();
+
         faseAtual++;
 
+        // Aumenta dificuldade
         int qtdAntiga = qtdInimigosAtual;
         qtdInimigosAtual = (int) (qtdInimigosAtual * 1.3);
-
         if (qtdInimigosAtual <= qtdAntiga) {
             qtdInimigosAtual++;
         }
 
         balas.clear();
-
         jogador.resetarParaNovaFase();
 
-        int proximoIndiceMapa = (config.getIndiceMapa() + faseAtual - 1) % 3;
+        this.duracaoFaseAtual = calcularDuracaoDaFase();
+        this.momentoInicioFase = System.currentTimeMillis();
+
+        int proximoIndiceMapa = (config.getIndiceMapa() + faseAtual - 1) % 3; // Ajustar se necessário
         carregarMapa(proximoIndiceMapa);
 
-        spawnarInimigosDaFase();
+        // --- ATUALIZA SPAWNER PARA NOVA FASE ---
+        spawner.iniciarFase(this.qtdInimigosAtual);
 
-        // feedback visual
         JOptionPane.showMessageDialog(this, "Vitória! Avançando para Fase " + faseAtual + 
                 "\nInimigos: " + qtdInimigosAtual);
         
@@ -458,13 +476,11 @@ public class TelaJogo extends JPanel implements ActionListener {
         double escalaX = (double) getWidth() / LARGURA_LOGICA;
         double escalaY = (double) getHeight() / ALTURA_LOGICA;
         double escala = Math.min(escalaX, escalaY);
-        if (escala <= 0) {
-            escala = 1;
-        }
+        if (escala <= 0) escala = 1;
+        
         g2d.translate((getWidth() - LARGURA_LOGICA*escala)/2, (getHeight() - ALTURA_LOGICA*escala)/2);
         g2d.scale(escala, escala);
         
-        // Fundo
         g2d.setColor(Color.BLACK);
         g2d.fillRect(0, 0, TAMANHO_MAPA, ALTURA_LOGICA);
         g2d.setColor(Color.GRAY);
@@ -476,6 +492,7 @@ public class TelaJogo extends JPanel implements ActionListener {
             jogador.desenhar(g2d);
         }
         try {
+            // Cria cópia da lista para evitar ConcurrentModificationException no loop de desenho
             for (Inimigo inimigo : new ArrayList<>(inimigos)) {
                 if(inimigo.estaVivo()) inimigo.desenhar(g2d);
             }
@@ -488,14 +505,12 @@ public class TelaJogo extends JPanel implements ActionListener {
 
         desenharHUD(g2d);
 
-        // bordas
         g2d.setColor(Color.WHITE);
         g2d.setStroke(new BasicStroke(1));
         g2d.drawRect(0, 0, LARGURA_LOGICA - 1, ALTURA_LOGICA - 1);
 
         g2d.setTransform(transformOriginal);
 
-        // PAUSE OVERLAY
         if (estadoAtual == EstadoJogo.PAUSADO) {
             g.setColor(new Color(0, 0, 0, 150));
             g.fillRect(0, 0, getWidth(), getHeight());
@@ -511,13 +526,25 @@ public class TelaJogo extends JPanel implements ActionListener {
         g2d.setFont(new Font("Arial", Font.BOLD, 20));
         
         int xHud = TAMANHO_MAPA + 20;
+
+        g2d.drawString("TEMPO", xHud, 300);
+        if (tempoRestanteVisual <= 10) g2d.setColor(Color.RED);
+        else g2d.setColor(Color.BLUE);
+        g2d.drawString(String.valueOf(tempoRestanteVisual), xHud, 330);
+
+        g2d.setColor(Color.BLACK);
         
         g2d.drawString("INIMIGOS", xHud, 50);
-        g2d.drawString("" + inimigos.size(), xHud, 80);
-        g2d.drawString("FASE " + faseAtual, TAMANHO_MAPA + 20, 400);
+        
+        // --- MOSTRA O TOTAL (Vivos + Reserva) ---
+        int totalRestante = inimigos.size() + spawner.getPendentes();
+        g2d.drawString("" + totalRestante, xHud, 80);
+        
         g2d.drawString("JOGADOR", xHud, 150);
         int vidas = (jogador != null) ? jogador.getEstoqueVidas() + 1 : 0;
         g2d.drawString("Vidas: " + vidas, xHud, 180);
         g2d.drawString("Pontos: " + (jogador != null ? jogador.getPontuacao() : 0), xHud, 210);
+
+        g2d.drawString("FASE " + faseAtual, TAMANHO_MAPA + 20, 400);
     }
 }

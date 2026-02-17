@@ -13,12 +13,38 @@ public class Jogador extends Tanque {
         super(x, y);
         this.xInicial = x;
         this.yInicial = y;   
-        this.estoqueVidas = 2;
         this.pontuacao = 0;
         this.direcao = Direcao.CIMA;
         this.tipo = tipo;
 
+        if (this.tipo == null) {
+            this.tipo = TipoTanque.BALANCEADO;
+        }
+
+        switch (this.tipo) {
+            case AGIL:
+                this.estoqueVidas = 0;
+                break;
+            case BLINDADO:
+                this.estoqueVidas = 1; 
+                break;
+            case BALANCEADO:
+            default:
+                this.estoqueVidas = 2; 
+                break;
+        }
+
         configurarAtributos(tipo);
+    }
+
+    public static class Memento {
+        private final int vidas;
+        private final int pontuacao;
+
+        public Memento(int vidas, int pontuacao) {
+            this.vidas = vidas;
+            this.pontuacao = pontuacao;
+        }
     }
 
     private void configurarAtributos(TipoTanque tipo) {
@@ -37,6 +63,15 @@ public class Jogador extends Tanque {
                 setVidas(1);
                 break;
         }
+    }
+
+    public Memento criarMemento() {
+        return new Memento(this.estoqueVidas, this.pontuacao);
+    }
+
+    public void restaurarMemento(Memento m) {
+        this.estoqueVidas = m.vidas;
+        this.pontuacao = m.pontuacao;
     }
 
     public void adicionarPontos(int pontos) {

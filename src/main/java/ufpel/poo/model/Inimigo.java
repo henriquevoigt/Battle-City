@@ -7,7 +7,7 @@ import java.util.Random;
 public abstract class Inimigo extends Tanque implements Runnable {
 
     protected Mapa mapa;
-    protected TelaJogo tela; 
+    protected TelaJogo tela;
     protected Random random;
     protected int pontuacao; 
 
@@ -21,7 +21,7 @@ public abstract class Inimigo extends Tanque implements Runnable {
 
     protected void tentarAtirar() {
         if (podeAtirar()) {
-            // cria o projétil passando o MAPA e o DONO 
+            // Cria o projétil passando o MAPA e o DONO (this)
             Projetil p = new Projetil(getX(), getY(), getDirecao(), this, mapa);
             tela.adicionarBala(p);
         }
@@ -31,7 +31,7 @@ public abstract class Inimigo extends Tanque implements Runnable {
         int xAntigo = this.x;
         int yAntigo = this.y;
 
-        mover(mapa);
+        mover(tela);
 
         if (this.x == xAntigo && this.y == yAntigo) {
             mudarDirecaoAleatoria();

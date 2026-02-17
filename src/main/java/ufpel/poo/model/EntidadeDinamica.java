@@ -29,12 +29,11 @@ public abstract class EntidadeDinamica implements IMovel, IDesenhavel {
         this.direcao = direcao; 
     }
 
-    public void mover(Mapa mapa) {
+    public void mover(IValidadorMovimento validador) {
         
         int novoX = this.x;
         int novoY = this.y;
 
-        
         switch (this.direcao) {
             case CIMA:    novoY -= velocidade; break;
             case BAIXO:   novoY += velocidade; break;
@@ -42,15 +41,12 @@ public abstract class EntidadeDinamica implements IMovel, IDesenhavel {
             case DIREITA:  novoX += velocidade; break;
         }
 
-        // verificação borda da tela
         if (novoX < 0 || novoX > (520 - 40)) return; 
         if (novoY < 0 || novoY > (520 - 40)) return;
 
-        // hitbox futura, 36px pra não prender nos cantos
-        java.awt.Rectangle retanguloFuturo = new java.awt.Rectangle(novoX + 2, novoY + 2, 36, 36);
+        Rectangle rectFuturo = new Rectangle(novoX + 2, novoY + 2, 36, 36);
 
-        // verifica se pode andar
-        if (!mapa.temColisao(retanguloFuturo)) {
+        if (validador.isPosicaoLivre(rectFuturo, this)) {
             this.x = novoX;
             this.y = novoY;
         }
