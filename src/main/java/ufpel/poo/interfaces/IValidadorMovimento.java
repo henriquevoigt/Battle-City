@@ -1,4 +1,6 @@
-package ufpel.poo.model;
+package ufpel.poo.interfaces;
+
+import ufpel.poo.model.EntidadeDinamica;
 
 import java.awt.Rectangle;
 

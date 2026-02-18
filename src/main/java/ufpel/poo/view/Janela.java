@@ -25,7 +25,6 @@ public class Janela extends JFrame {
 
     // chamada APÓS clicar em "Jogar"
     public void mostrarSelecaoMapa(String nomeJogador) {
-        // Mudamos para a nova classe MenuConfiguracao
         MenuConfiguracao menuConf = new MenuConfiguracao(this, nomeJogador);
         setContentPane(menuConf);
         revalidate();
@@ -33,13 +32,11 @@ public class Janela extends JFrame {
     }
 
     // chamada APÓS clicar em "Iniciar Missão"
-    // AGORA RECEBE O OBJETO CONFIGURACAO
     public void iniciarJogo(String nomeJogador, ConfiguracaoJogo config) {
         System.out.println("Iniciando jogo para: " + nomeJogador);
         
-        TelaJogo jogo = new TelaJogo(nomeJogador, config); // Passamos a config para o jogo
-        // O carregamento do mapa agora acontece dentro da TelaJogo usando a config
-        
+        TelaJogo jogo = new TelaJogo(nomeJogador, config); 
+         
         setContentPane(jogo);
         jogo.requestFocusInWindow();
         revalidate();

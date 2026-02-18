@@ -3,25 +3,23 @@ package ufpel.poo.model;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import ufpel.poo.view.TelaJogo;
+import ufpel.poo.controller.MotorFisica;
 
 public class Projetil extends EntidadeDinamica implements Runnable {
 
     private boolean doJogador;
-    private boolean ativo; 
+    private volatile boolean ativo; 
     private Tanque dono; 
-    
-    private Mapa mapa; 
+    private MotorFisica motor; 
     private Thread thread; 
 
-    public Projetil(int x, int y, Direcao direcao, Tanque dono, Mapa mapa) {
+    public Projetil(int x, int y, Direcao direcao, Tanque dono, MotorFisica motor) {
         super(x, y);
         this.direcao = direcao;
         this.dono = dono;
-        this.mapa = mapa;
+        this.motor = motor;
         
         this.velocidade = 6;
-        
         this.ativo = true;
         this.doJogador = (dono instanceof Jogador);
 
@@ -46,20 +44,19 @@ public class Projetil extends EntidadeDinamica implements Runnable {
     @Override
     public void run() {
         while (ativo) {
-
-            if (TelaJogo.jogoPausado) {
+            if (motor.isJogoPausado()) {
                 try { 
                     Thread.sleep(100);
                 } catch (InterruptedException e) { 
                     e.printStackTrace(); 
                 }
-                continue; // pula o resto do loop (não move)
+                continue; 
             }
 
             mover();
             
             try {
-                Thread.sleep(16);
+                Thread.sleep(16); 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -76,14 +73,14 @@ public class Projetil extends EntidadeDinamica implements Runnable {
             case DIREITA:  x += velocidade; break;
         }
 
-        if (x < 0 || x > 514 || y <  0 || y > 514) { 
+        if (x < 0 || x > 514 || y < 0 || y > 514) { 
             setAtivo(false); 
             return;
         }
 
-        if (mapa.processarColisaoProjetil(this.getLimites())) { 
-             setAtivo(false);
-        }
+        motor.processarMovimentoBala(this);
+
+        if (!ativo) return;
     }
 
     public boolean isAtivo(){ 
@@ -96,7 +93,6 @@ public class Projetil extends EntidadeDinamica implements Runnable {
 
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
-   
         if (!ativo && dono != null) {
             dono.recarregar();
         }

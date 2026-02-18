@@ -1,9 +1,9 @@
 package ufpel.poo.model;
-
 public class ConfiguracaoJogo {
+
     private Dificuldade dificuldade;
     private TipoTanque tipoTanque;
-    private int indiceMapa; // 0, 1, 2...
+    private int indiceMapa;
 
     public ConfiguracaoJogo(Dificuldade dificuldade, TipoTanque tipoTanque, int indiceMapa) {
         this.dificuldade = dificuldade;

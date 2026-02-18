@@ -1,5 +1,4 @@
 package ufpel.poo.model;
-
 public class BlocoFactory {
 
     private static final int TAM = 40;

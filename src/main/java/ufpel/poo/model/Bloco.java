@@ -1,8 +1,11 @@
 package ufpel.poo.model;
 
-import java.awt.Graphics;
+import ufpel.poo.interfaces.IDesenhavel;
+import ufpel.poo.interfaces.IDestrutivel;
 
+import java.awt.Graphics;
 public abstract class Bloco implements IDesenhavel, IDestrutivel {
+    
     protected int x;
     protected int y;
 

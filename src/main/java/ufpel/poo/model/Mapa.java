@@ -143,4 +143,11 @@ public class Mapa {
         }
         return false;
     }
+
+    public Bloco getBloco(int col, int lin) {
+    if (col >= 0 && col < 13 && lin >= 0 && lin < 13) {
+        return grid[col][lin];
+    }
+    return null;
+}
 }

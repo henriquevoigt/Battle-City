@@ -1,29 +1,30 @@
 package ufpel.poo.model;
 
-import ufpel.poo.view.TelaJogo;
+import ufpel.poo.controller.MotorFisica;
+
 import java.awt.Graphics;
 import java.util.Random;
-
 public abstract class Inimigo extends Tanque implements Runnable {
 
     protected Mapa mapa;
-    protected TelaJogo tela;
+    protected MotorFisica motor;
     protected Random random;
     protected int pontuacao; 
 
-    public Inimigo(int x, int y, Mapa mapa, TelaJogo tela) {
+    public Inimigo(int x, int y, Mapa mapa, MotorFisica motor) {
         super(x, y);
         this.mapa = mapa;
-        this.tela = tela; 
+        this.motor = motor; 
         this.random = new Random();
         setDirecao(Direcao.BAIXO); 
     }
 
     protected void tentarAtirar() {
         if (podeAtirar()) {
-            // Cria o projétil passando o MAPA e o DONO (this)
-            Projetil p = new Projetil(getX(), getY(), getDirecao(), this, mapa);
-            tela.adicionarBala(p);
+
+            Projetil p = new Projetil(getX(), getY(), getDirecao(), this, motor);
+
+            motor.adicionarProjetil(p);
         }
     }
     
@@ -31,13 +32,13 @@ public abstract class Inimigo extends Tanque implements Runnable {
         int xAntigo = this.x;
         int yAntigo = this.y;
 
-        mover(tela);
+        mover(motor);
 
         if (this.x == xAntigo && this.y == yAntigo) {
             mudarDirecaoAleatoria();
         }
 
-        if (random.nextInt(100) < 5) { // 5% de chance
+        if (random.nextInt(100) < 5) { 
             mudarDirecaoAleatoria();
         }
     }
@@ -54,5 +55,4 @@ public abstract class Inimigo extends Tanque implements Runnable {
     
     @Override
     public abstract void desenhar(Graphics g);
-
 }

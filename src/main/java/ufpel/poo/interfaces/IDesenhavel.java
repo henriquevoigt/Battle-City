@@ -1,4 +1,5 @@
-package ufpel.poo.model;
+package ufpel.poo.interfaces;
+
 import java.awt.Graphics;
 
 public interface IDesenhavel {

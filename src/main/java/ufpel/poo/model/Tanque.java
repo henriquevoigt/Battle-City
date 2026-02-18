@@ -1,13 +1,16 @@
 package ufpel.poo.model;
 
-import java.awt.Graphics;
+import ufpel.poo.interfaces.IDestrutivel; 
 
+import java.awt.Graphics;
 public abstract class Tanque extends EntidadeDinamica implements IDestrutivel {
 
     private int vidas; 
 
     protected boolean ativo; 
     protected int balasAtivas; 
+    protected long ultimoDisparo = 0;
+    protected int delayDisparo = 400;
 
     public Tanque(int x, int y) {
         super(x, y);
@@ -36,11 +39,13 @@ public abstract class Tanque extends EntidadeDinamica implements IDestrutivel {
     }
 
     public boolean podeAtirar() {
-        return balasAtivas < 1; 
+        long agora = System.currentTimeMillis();
+        return balasAtivas < 1 && (agora - ultimoDisparo > delayDisparo);
     }
 
     public void registrarDisparo() {
         balasAtivas++;
+        this.ultimoDisparo = System.currentTimeMillis();
     }
 
     public void recarregar() {
