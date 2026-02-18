@@ -20,8 +20,14 @@ public class GerenciadorJogo implements IObservadorMapa {
     private List<Inimigo> inimigos;
     private List<Projetil> balas;
     private List<ItemPowerUp> itens;
+    
+    // controle de tempo e feitos
     private long fimEfeitoRelogio = 0;
     private long fimEfeitoCapacete = 0;
+    private long fimEfeitoEstrela = 0;
+    private Mapa.Memento backupBase;
+    private long fimEfeitoPa = 0;
+    
     private final int DURACAO_POWERUP = 10000;
 
     private MotorFisica motorFisica;
@@ -46,7 +52,6 @@ public class GerenciadorJogo implements IObservadorMapa {
     }
 
     private void iniciarNovaFase(int indiceMapa) {
-
         limparEntidades();
         
         this.mapa = new Mapa();
@@ -67,6 +72,11 @@ public class GerenciadorJogo implements IObservadorMapa {
         // tempo
         this.duracaoFaseAtual = calcularDuracaoDaFase();
         this.momentoInicioFase = System.currentTimeMillis();
+
+        this.fimEfeitoCapacete = 0;
+        this.fimEfeitoEstrela = 0;
+        this.fimEfeitoRelogio = 0;
+        this.fimEfeitoPa = 0;
         
         this.estadoAtual = EstadoJogo.JOGANDO;
         this.motorFisica.setJogoPausado(false);
@@ -79,6 +89,48 @@ public class GerenciadorJogo implements IObservadorMapa {
 
         long agora = System.currentTimeMillis(); 
 
+        if (!jogador.estaVivo()) {
+            if (jogador.podeRenascer()) {
+                jogador.renascer();
+
+                this.fimEfeitoCapacete = agora + 3000; 
+                
+                System.out.println("Jogador renasceu! Invulnerável por 3s.");
+            } else {
+                finalizarJogo("SEM VIDAS!");
+                return;
+            }
+        }
+
+        if (fimEfeitoCapacete > 0) {
+            if (agora > fimEfeitoCapacete) { 
+                jogador.setInvulneravel(false);
+                fimEfeitoCapacete = 0;
+            }
+        }
+
+        if (fimEfeitoEstrela > 0) {
+            if (agora > fimEfeitoEstrela) {
+                jogador.resetarTiro();
+                fimEfeitoEstrela = 0;
+            }
+        }
+
+        if (fimEfeitoRelogio > 0) {
+            if (agora < fimEfeitoRelogio) { 
+                for(Inimigo i : inimigos) i.setCongelado(true);
+            } else {
+                for(Inimigo i : inimigos) i.setCongelado(false);
+                fimEfeitoRelogio = 0;
+            }
+        }
+
+        if (fimEfeitoPa > 0 && agora > fimEfeitoPa) {
+            mapa.restaurarBackupBase(backupBase);
+            backupBase = null;
+            fimEfeitoPa = 0;
+        }
+
         spawner.atualizar(inimigos, mapa, motorFisica, config.getDificuldade());
 
         long tempoDecorrido = agora - momentoInicioFase;
@@ -88,24 +140,6 @@ public class GerenciadorJogo implements IObservadorMapa {
         if (tempoRestanteMs <= 0) {
             finalizarFase(true);
             return;
-        }
-
-        if (fimEfeitoRelogio > 0) {
-
-            if (agora < fimEfeitoRelogio) { 
-                for(Inimigo i : inimigos) i.setCongelado(true);
-            } 
-            else {
-                for(Inimigo i : inimigos) i.setCongelado(false);
-                fimEfeitoRelogio = 0;
-            }
-        }
-
-        if (fimEfeitoCapacete > 0) {
-            if (agora > fimEfeitoCapacete) { 
-                jogador.setInvulneravel(false);
-                fimEfeitoCapacete = 0;
-            }
         }
 
         Rectangle rectJogador = jogador.getLimites();
@@ -123,8 +157,6 @@ public class GerenciadorJogo implements IObservadorMapa {
 
         if (mapa.verificarGameOver()) {
             finalizarJogo("BASE DESTRUÍDA!");
-        } else if (jogador.getVidas() <= 0 && !jogador.tentarRespawn()) {
-            finalizarJogo("SEM VIDAS!");
         } else if (inimigos.isEmpty() && spawner.getPendentes() == 0) {
             finalizarFase(false);
         }
@@ -135,6 +167,8 @@ public class GerenciadorJogo implements IObservadorMapa {
 
     public void processarComandoJogador(boolean cima, boolean baixo, boolean esq, boolean dir, boolean atirar) {
         if (estadoAtual != EstadoJogo.JOGANDO) return;
+
+        if (!jogador.estaVivo()) return;
 
         if (cima) { 
             jogador.setDirecao(Direcao.CIMA); jogador.mover(motorFisica); 
@@ -150,7 +184,7 @@ public class GerenciadorJogo implements IObservadorMapa {
         }
 
         if (atirar && jogador.podeAtirar()) {
-            Projetil p = new Projetil(jogador.getX(), jogador.getY(), jogador.getDirecao(), jogador, motorFisica);
+            Projetil p = jogador.atirar(motorFisica);
             balas.add(p);
         }
     }
@@ -204,33 +238,15 @@ public class GerenciadorJogo implements IObservadorMapa {
         }
 
         int indiceMapa = (config.getIndiceMapa() + faseAtual - 1) % 3;
-
         iniciarNovaFase(indiceMapa);
-
         this.estadoAtual = EstadoJogo.JOGANDO;
         this.motorFisica.setJogoPausado(false);
     }
 
     private void limparEntidades() {
-
-        if (inimigos != null) {
-            for (Inimigo i : inimigos) {
-                i.setAtivo(false); 
-            }
-        }
-        
-        if (balas != null) {
-            for (Projetil p : balas) {
-                p.setAtivo(false); 
-            }
-        }
-
-        try { 
-            Thread.sleep(20); 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        if (inimigos != null) for (Inimigo i : inimigos) i.setAtivo(false);
+        if (balas != null) for (Projetil p : balas) p.setAtivo(false);
+        try { Thread.sleep(20); } catch (InterruptedException e) {}
         if (inimigos != null) inimigos.clear();
         if (balas != null) balas.clear();
         if (itens != null) itens.clear();
@@ -239,14 +255,13 @@ public class GerenciadorJogo implements IObservadorMapa {
     public void spawnarPowerUp(int x, int y) {
         TipoPowerUp[] tipos = TipoPowerUp.values();
         int indice = (int) (Math.random() * tipos.length);
-        
         ItemPowerUp item = new ItemPowerUp(x, y, tipos[indice]);
         this.itens.add(item);
     }
 
     @Override
     public void onBlocoDestruido(int x, int y) {
-        if (Math.random() < 0.20) { // 20% de chance de spawnar
+        if (Math.random() < 0.20) { 
             spawnarPowerUp(x, y);
         }
     }
@@ -269,12 +284,12 @@ public class GerenciadorJogo implements IObservadorMapa {
                 break;
                 
             case ESTRELA:
-                //this.tiroPoderosoAtivo = true;
+                this.fimEfeitoEstrela = System.currentTimeMillis() + DURACAO_POWERUP;
+                jogador.melhorarTiro();
                 break;
                 
             case RELOGIO:
                 this.fimEfeitoRelogio = System.currentTimeMillis() + DURACAO_POWERUP;
-
                 for (Inimigo i : inimigos) {
                     i.setCongelado(true);
                 }
@@ -286,13 +301,20 @@ public class GerenciadorJogo implements IObservadorMapa {
                 break;
                 
             case PA:
-                //this.fimEfeitoPa = System.currentTimeMillis() + DURACAO_POWERUP;
-                //alterarParedesBase(4); // 4 é o ID do Aço na sua BlocoFactory
+                if (backupBase == null) {
+                    this.backupBase = mapa.criarBackupBase();
+                }
+                this.fimEfeitoPa = System.currentTimeMillis() + 10000;
+                int[][] coords = {{5,11}, {5,12}, {6,11}, {7,11}, {7,12}};
+                for (int[] pos : coords) {
+                    mapa.setBloco(pos[0], pos[1], BlocoFactory.criar(4, pos[0], pos[1]));
+                }
                 break;
         }
     }
 
     // getters
+
     public Mapa getMapa() { 
         return mapa; 
     }
@@ -320,10 +342,10 @@ public class GerenciadorJogo implements IObservadorMapa {
     public String getNomeJogador() { 
         return nomeJogador; 
     }
-    public boolean isPausado() {
-        return estadoAtual == EstadoJogo.PAUSADO;
+    public boolean isPausado() { 
+        return estadoAtual == EstadoJogo.PAUSADO; 
     }
-    public List<ItemPowerUp> getItens() {
-        return new ArrayList<>(itens);
+    public List<ItemPowerUp> getItens() { 
+        return new ArrayList<>(itens); 
     }
 }

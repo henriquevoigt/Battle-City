@@ -1,6 +1,6 @@
 package ufpel.poo.controller;
 
-import ufpel.poo.interfaces.*;
+import ufpel.poo.interfaces.IValidadorMovimento;
 import ufpel.poo.model.*;
 
 import java.awt.Rectangle;
@@ -12,6 +12,7 @@ public class MotorFisica implements IValidadorMovimento {
     private Jogador jogador;
     private List<Inimigo> inimigos;
     private List<Projetil> balas;
+    private boolean jogoPausado = false;
 
     public MotorFisica(Mapa mapa, Jogador jogador, List<Inimigo> inimigos, List<Projetil> balas) {
         this.mapa = mapa;
@@ -38,8 +39,6 @@ public class MotorFisica implements IValidadorMovimento {
 
         return true;
     }
-
-    private boolean jogoPausado = false;
 
     public boolean isJogoPausado() {
         return jogoPausado;
@@ -80,7 +79,7 @@ public class MotorFisica implements IValidadorMovimento {
 
         Rectangle rectBala = bala.getLimites();
 
-        if (mapa.processarColisaoProjetil(rectBala)) {
+        if (mapa.processarColisaoProjetil(rectBala, bala.getDano())) {
             bala.setAtivo(false);
             return;
         }
@@ -88,7 +87,9 @@ public class MotorFisica implements IValidadorMovimento {
         if (bala.ehDoJogador()) {
             for (Inimigo inimigo : inimigos) {
                 if (inimigo.estaVivo() && rectBala.intersects(inimigo.getLimites())) {
-                    inimigo.receberDano(1);
+
+                    inimigo.receberDano(bala.getDano());
+                    
                     bala.setAtivo(false);
                     if (!inimigo.estaVivo()) {
                         jogador.adicionarPontos(inimigo.getPontuacao());
@@ -98,7 +99,8 @@ public class MotorFisica implements IValidadorMovimento {
             }
         } else {
             if (jogador != null && jogador.estaVivo() && rectBala.intersects(jogador.getLimites())) {
-                jogador.receberDano(1);
+                jogador.receberDano(bala.getDano());
+                
                 bala.setAtivo(false);
             }
         }

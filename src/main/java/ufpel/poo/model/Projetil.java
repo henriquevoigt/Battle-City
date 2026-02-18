@@ -12,12 +12,18 @@ public class Projetil extends EntidadeDinamica implements Runnable {
     private Tanque dono; 
     private MotorFisica motor; 
     private Thread thread; 
+    private int dano;
 
     public Projetil(int x, int y, Direcao direcao, Tanque dono, MotorFisica motor) {
+        this(x, y, direcao, dono, motor, 1); 
+    }
+
+    public Projetil(int x, int y, Direcao direcao, Tanque dono, MotorFisica motor, int dano) {
         super(x, y);
         this.direcao = direcao;
         this.dono = dono;
         this.motor = motor;
+        this.dano = dano; 
         
         this.velocidade = 6;
         this.ativo = true;
@@ -28,6 +34,7 @@ public class Projetil extends EntidadeDinamica implements Runnable {
         }
         
         ajustarPosicaoSaida(); 
+        
         this.thread = new Thread(this);
         this.thread.start();
     }
@@ -89,6 +96,10 @@ public class Projetil extends EntidadeDinamica implements Runnable {
     
     public boolean ehDoJogador() {
         return doJogador;
+    }
+
+    public int getDano() {
+        return dano;
     }
 
     public void setAtivo(boolean ativo) {

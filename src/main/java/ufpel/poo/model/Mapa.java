@@ -3,6 +3,9 @@ package ufpel.poo.model;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.awt.Point;
+import java.util.HashMap;
+import java.util.Map;
 
 import ufpel.poo.interfaces.IObservadorMapa;
 
@@ -112,7 +115,7 @@ public class Mapa {
         return false; 
     }
 
-    public boolean processarColisaoProjetil(java.awt.Rectangle retanguloBala) {
+    public boolean processarColisaoProjetil(java.awt.Rectangle retanguloBala, int dano) {
         for (int x = 0; x < 13; x++) {
             for (int y = 0; y < 13; y++) {
                 Bloco bloco = grid[x][y];
@@ -122,7 +125,7 @@ public class Mapa {
                     java.awt.Rectangle rectBloco = new java.awt.Rectangle(bloco.getX(), bloco.getY(), 40, 40);
                     
                     if (rectBloco.intersects(retanguloBala)) {
-                        boolean foiDestruido = bloco.receberDano(1); 
+                        boolean foiDestruido = bloco.receberDano(dano); 
                         
                         if (foiDestruido) {
                             int xDestruido = bloco.getX();
@@ -166,4 +169,42 @@ public class Mapa {
         this.observador = observador;
     }
 
+    public static class Memento {
+        private final Map<Point, Bloco> blocosSalvos;
+
+        private Memento(Map<Point, Bloco> blocos) {
+            this.blocosSalvos = new HashMap<>(blocos);
+        }
+    }
+
+    public Memento criarBackupBase() {
+        Map<Point, Bloco> estado = new HashMap<>();       
+        // Paredes: (5,11), (5,12), (6,11), (7,11), (7,12)
+        int[][] coords = {{5,11}, {5,12}, {6,11}, {7,11}, {7,12}};
+        
+        for (int[] pos : coords) {
+            int x = pos[0];
+            int y = pos[1];
+            if (x >= 0 && x < 13 && y >= 0 && y < 13) {
+                 estado.put(new Point(x, y), grid[x][y]);
+            }
+        }
+        return new Memento(estado);
+    }
+
+    public void restaurarBackupBase(Memento memento) {
+        if (memento == null) return;
+
+        for (Map.Entry<Point, Bloco> entry : memento.blocosSalvos.entrySet()) {
+            Point p = entry.getKey();
+            grid[p.x][p.y] = entry.getValue();
+        }
+    }
+    
+    public void setBloco(int x, int y, Bloco novoBloco) {
+         if (x >= 0 && x < 13 && y >= 0 && y < 13) {
+            grid[x][y] = novoBloco;
+        }
+    }
 }
+
