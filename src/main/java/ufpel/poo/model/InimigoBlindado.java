@@ -21,11 +21,9 @@ public class InimigoBlindado extends Inimigo {
     @Override
     public void run() {
         while (this.estaVivo()) {
-            if (motor.isJogoPausado()) {
-                try { Thread.sleep(100); } catch (Exception e) {}
-                continue;
+            if (deveFicarParado()) {
+                continue; 
             }
-
             movimentoAleatorio();
  
             if (random.nextInt(100) < 1) { // 1% de chance 

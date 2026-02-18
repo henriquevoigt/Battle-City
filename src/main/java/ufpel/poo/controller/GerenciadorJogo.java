@@ -1,11 +1,13 @@
 package ufpel.poo.controller;
 
+import ufpel.poo.interfaces.IObservadorMapa;
 import ufpel.poo.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Rectangle;
 
-public class GerenciadorJogo {
+public class GerenciadorJogo implements IObservadorMapa {
 
     private EstadoJogo estadoAtual;
     private String nomeJogador;
@@ -17,6 +19,10 @@ public class GerenciadorJogo {
     private Jogador jogador;
     private List<Inimigo> inimigos;
     private List<Projetil> balas;
+    private List<ItemPowerUp> itens;
+    private long fimEfeitoRelogio = 0;
+    private long fimEfeitoCapacete = 0;
+    private final int DURACAO_POWERUP = 10000;
 
     private MotorFisica motorFisica;
     private GerenciadorInimigos spawner;
@@ -33,6 +39,7 @@ public class GerenciadorJogo {
         this.config = config;
         this.inimigos = new ArrayList<>();
         this.balas = new ArrayList<>();
+        this.itens = new ArrayList<>();
         this.spawner = new GerenciadorInimigos();
         
         iniciarNovaFase(config.getIndiceMapa());
@@ -43,6 +50,7 @@ public class GerenciadorJogo {
         limparEntidades();
         
         this.mapa = new Mapa();
+        this.mapa.setObservador(this);
         this.mapa.carregarMapaDeArquivo("maps.txt", indiceMapa);
 
         if (this.jogador == null) {
@@ -69,9 +77,11 @@ public class GerenciadorJogo {
     public void atualizar() {
         if (estadoAtual != EstadoJogo.JOGANDO) return;
 
+        long agora = System.currentTimeMillis(); 
+
         spawner.atualizar(inimigos, mapa, motorFisica, config.getDificuldade());
 
-        long tempoDecorrido = System.currentTimeMillis() - momentoInicioFase;
+        long tempoDecorrido = agora - momentoInicioFase;
         long tempoRestanteMs = duracaoFaseAtual - tempoDecorrido;
         this.tempoRestanteVisual = Math.max(0, tempoRestanteMs / 1000);
 
@@ -79,6 +89,37 @@ public class GerenciadorJogo {
             finalizarFase(true);
             return;
         }
+
+        if (fimEfeitoRelogio > 0) {
+
+            if (agora < fimEfeitoRelogio) { 
+                for(Inimigo i : inimigos) i.setCongelado(true);
+            } 
+            else {
+                for(Inimigo i : inimigos) i.setCongelado(false);
+                fimEfeitoRelogio = 0;
+            }
+        }
+
+        if (fimEfeitoCapacete > 0) {
+            if (agora > fimEfeitoCapacete) { 
+                jogador.setInvulneravel(false);
+                fimEfeitoCapacete = 0;
+            }
+        }
+
+        Rectangle rectJogador = jogador.getLimites();
+
+        for (ItemPowerUp item : itens) {
+            item.atualizar();
+
+            if (item.isAtivo() && item.getLimites().intersects(rectJogador)) {
+                aplicarEfeitoPowerUp(item.getTipo());
+                item.setAtivo(false);
+            }
+        }
+
+        itens.removeIf(i -> !i.isAtivo());
 
         if (mapa.verificarGameOver()) {
             finalizarJogo("BASE DESTRUÍDA!");
@@ -192,6 +233,63 @@ public class GerenciadorJogo {
 
         if (inimigos != null) inimigos.clear();
         if (balas != null) balas.clear();
+        if (itens != null) itens.clear();
+    }
+
+    public void spawnarPowerUp(int x, int y) {
+        TipoPowerUp[] tipos = TipoPowerUp.values();
+        int indice = (int) (Math.random() * tipos.length);
+        
+        ItemPowerUp item = new ItemPowerUp(x, y, tipos[indice]);
+        this.itens.add(item);
+    }
+
+    @Override
+    public void onBlocoDestruido(int x, int y) {
+        if (Math.random() < 0.20) { // 20% de chance de spawnar
+            spawnarPowerUp(x, y);
+        }
+    }
+
+    private void aplicarEfeitoPowerUp(TipoPowerUp tipo) {
+        System.out.println("COLETOU POWER-UP: " + tipo);
+        
+        switch (tipo) {
+            case VIDA:
+                jogador.ganharVidaExtra();
+                break;
+                
+            case BOMBA:
+                for (Inimigo inimigo : inimigos) {
+                    if (inimigo.estaVivo()) {
+                        jogador.adicionarPontos(inimigo.getPontuacao());
+                        inimigo.receberDano(999);
+                    }
+                }
+                break;
+                
+            case ESTRELA:
+                //this.tiroPoderosoAtivo = true;
+                break;
+                
+            case RELOGIO:
+                this.fimEfeitoRelogio = System.currentTimeMillis() + DURACAO_POWERUP;
+
+                for (Inimigo i : inimigos) {
+                    i.setCongelado(true);
+                }
+                break;
+                
+            case CAPACETE:
+                this.fimEfeitoCapacete = System.currentTimeMillis() + DURACAO_POWERUP;
+                jogador.setInvulneravel(true);
+                break;
+                
+            case PA:
+                //this.fimEfeitoPa = System.currentTimeMillis() + DURACAO_POWERUP;
+                //alterarParedesBase(4); // 4 é o ID do Aço na sua BlocoFactory
+                break;
+        }
     }
 
     // getters
@@ -224,5 +322,8 @@ public class GerenciadorJogo {
     }
     public boolean isPausado() {
         return estadoAtual == EstadoJogo.PAUSADO;
+    }
+    public List<ItemPowerUp> getItens() {
+        return new ArrayList<>(itens);
     }
 }

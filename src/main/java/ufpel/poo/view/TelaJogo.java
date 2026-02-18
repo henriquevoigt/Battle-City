@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import ufpel.poo.controller.GerenciadorJogo;
-import ufpel.poo.model.EstadoJogo;
 import ufpel.poo.model.*;
 import ufpel.poo.controller.TecladoAdapter;
 
@@ -105,6 +104,11 @@ public class TelaJogo extends JPanel implements ActionListener {
 
         List<Projetil> balas = controller.getBalas();
         for (Projetil p : balas) p.desenhar(g2d);
+
+        List<ItemPowerUp> itens = controller.getItens();
+        for (ItemPowerUp item : itens) {
+            item.desenhar(g2d);
+        }
 
         if (mapa != null) mapa.desenharTopo(g2d);
 

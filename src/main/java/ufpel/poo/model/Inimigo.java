@@ -10,6 +10,7 @@ public abstract class Inimigo extends Tanque implements Runnable {
     protected MotorFisica motor;
     protected Random random;
     protected int pontuacao; 
+    protected boolean congelado = false;
 
     public Inimigo(int x, int y, Mapa mapa, MotorFisica motor) {
         super(x, y);
@@ -55,4 +56,30 @@ public abstract class Inimigo extends Tanque implements Runnable {
     
     @Override
     public abstract void desenhar(Graphics g);
+
+    public void setCongelado(boolean congelado) {
+        this.congelado = congelado;
+    }
+
+    protected boolean deveFicarParado() {
+   
+        if (motor.isJogoPausado()) {
+            dormir(100);
+            return true;
+        }
+
+        if (congelado) {
+            dormir(100);
+            return true;
+        }
+        return false; 
+        }
+
+
+    protected void dormir(int ms) {
+        try { 
+            Thread.sleep(ms); 
+        } 
+        catch (Exception e) {}
+    }
 }

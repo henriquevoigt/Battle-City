@@ -3,12 +3,16 @@ package ufpel.poo.model;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import ufpel.poo.interfaces.IObservadorMapa;
+
 import java.awt.Graphics;
 
 public class Mapa {
 
     private Bloco[][] grid;
     private final int TAMANHO_BLOCO = 40; 
+    private IObservadorMapa observador;
     
     public Mapa() {
         grid = new Bloco[13][13];
@@ -121,7 +125,14 @@ public class Mapa {
                         boolean foiDestruido = bloco.receberDano(1); 
                         
                         if (foiDestruido) {
-                            grid[x][y] = new Vazio(bloco.getX(), bloco.getY());
+                            int xDestruido = bloco.getX();
+                            int yDestruido = bloco.getY();
+
+                            grid[x][y] = new Vazio(xDestruido, yDestruido);
+
+                            if (observador != null) {
+                                observador.onBlocoDestruido(xDestruido, yDestruido);
+                            }
                         }
                         return true; // bala bateu em algo e deve sumir
                     }
@@ -145,9 +156,14 @@ public class Mapa {
     }
 
     public Bloco getBloco(int col, int lin) {
-    if (col >= 0 && col < 13 && lin >= 0 && lin < 13) {
-        return grid[col][lin];
+        if (col >= 0 && col < 13 && lin >= 0 && lin < 13) {
+            return grid[col][lin];
+        }
+        return null;
     }
-    return null;
-}
+
+    public void setObservador(IObservadorMapa observador) {
+        this.observador = observador;
+    }
+
 }

@@ -8,6 +8,7 @@ public class Jogador extends Tanque {
     private int pontuacao;    
     private int xInicial, yInicial; 
     private TipoTanque tipo;
+    private boolean invulneravel = false;
 
     public Jogador(int x, int y, TipoTanque tipo) {
         super(x, y);
@@ -88,6 +89,10 @@ public class Jogador extends Tanque {
 
     @Override
     public boolean receberDano(int dano) {
+
+        if (this.invulneravel) {
+            return false; 
+        }
         
         setVidas(getVidas() - dano);
 
@@ -127,6 +132,18 @@ public class Jogador extends Tanque {
         this.setAtivo(true);
     }
 
+    public void ganharVidaExtra() {
+        this.estoqueVidas++;
+    }
+
+    public void setInvulneravel(boolean invulneravel) {
+        this.invulneravel = invulneravel;
+    }
+
+    public boolean isInvulneravel() {
+        return invulneravel;
+    }
+
     @Override
     public void desenhar(Graphics g) {
         if (!estaVivo()) {
@@ -137,6 +154,13 @@ public class Jogador extends Tanque {
         g.fillRect(x, y, 40, 40);
         g.setColor(new Color(200, 200, 0)); 
         g.fillRect(x + 10, y + 10, 20, 20);
+
+        if (invulneravel) {
+            g.setColor(new Color(0, 255, 0, 100)); // Verde Transparente
+            g.fillOval(x - 5, y - 5, 50, 50);
+            g.setColor(Color.GREEN);
+            g.drawOval(x - 5, y - 5, 50, 50);
+        }
 
         // canhão 
         g.setColor(Color.BLACK);
