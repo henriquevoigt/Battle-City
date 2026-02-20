@@ -1,16 +1,21 @@
-package ufpel.poo.model;
-
-import ufpel.poo.controller.MotorFisica; 
+package ufpel.poo.controller;
 
 import java.awt.Rectangle;
 import java.util.List;
 import java.util.Random;
+
+import ufpel.poo.model.Dificuldade;
+import ufpel.poo.model.Inimigo;
+import ufpel.poo.model.InimigoAgil;
+import ufpel.poo.model.InimigoBlindado;
+import ufpel.poo.model.InimigoDefault;
+import ufpel.poo.model.Mapa;
 public class GerenciadorInimigos {
 
     private int inimigosPendentes;      
     private long ultimoTempoSpawn;
     private final long INTERVALO_SPAWN = 3000; 
-    private final int MAX_INIMIGOS_TELA = 4;
+    private final int MAX_INIMIGOS_TELA = 5;
 
     private final int[] PONTOS_SPAWN_X = {0, 6 * 40, 12 * 40};
     
@@ -64,21 +69,18 @@ public class GerenciadorInimigos {
         int chance = random.nextInt(100); 
 
         if (dif == Dificuldade.FACIL) {
-            // facil: 70% default, 20% agil, 10% blindado
-            if (chance < 20) return new InimigoAgil(x, y, mapa, motor);
-            else if (chance < 30) return new InimigoBlindado(x, y, mapa, motor);
+            if (chance < 30) return new InimigoAgil(x, y, mapa, motor);
+            else if (chance < 20) return new InimigoBlindado(x, y, mapa, motor);
             else return new InimigoDefault(x, y, mapa, motor);
             
         } 
         else if (dif == Dificuldade.MEDIO) {
-            // medio: 50% default, 30% agil, 20% blindado
             if (chance < 30) return new InimigoAgil(x, y, mapa, motor);
             else if (chance < 50) return new InimigoBlindado(x, y, mapa, motor);
             else return new InimigoDefault(x, y, mapa, motor);
             
         } 
         else { 
-            // difcil: 30% default, 30% agil, 40% blindado
             if (chance < 30) return new InimigoAgil(x, y, mapa, motor);
             else if (chance < 70) return new InimigoBlindado(x, y, mapa, motor);
             else return new InimigoDefault(x, y, mapa, motor);

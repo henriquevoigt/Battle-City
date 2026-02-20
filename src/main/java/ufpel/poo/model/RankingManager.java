@@ -11,19 +11,30 @@ public class RankingManager {
     public static void salvarPontuacao(String nome, int pontos) {
         List<String[]> lista = new ArrayList<>();
 
+        String nomeSeguro = (nome == null || nome.trim().isEmpty()) ? "Anonimo" : nome.trim();
+
         try (BufferedReader br = new BufferedReader(new FileReader(NOME_ARQUIVO))) {
             String linha;
             while ((linha = br.readLine()) != null) {
-                lista.add(linha.split(";"));
+
+                if (linha.trim().isEmpty()) continue;
+                
+                String[] partes = linha.split(";");
+
+                if (partes.length == 2) {
+                    lista.add(partes);
+                }
             }
         } catch (IOException e) {
         }
 
-        lista.add(new String[]{String.valueOf(pontos), nome});
+        lista.add(new String[]{String.valueOf(pontos), nomeSeguro});
 
         lista.sort((a, b) -> {
             try {
-                return Integer.parseInt(b[0].trim()) - Integer.parseInt(a[0].trim());
+                int pontosA = Integer.parseInt(a[0].trim());
+                int pontosB = Integer.parseInt(b[0].trim());
+                return pontosB - pontosA;
             } catch (NumberFormatException e) {
                 return 0;
             }
@@ -38,8 +49,9 @@ public class RankingManager {
                 writer.write(registro[0] + ";" + registro[1]);
                 writer.newLine();
             }
+            writer.flush();
         } catch (IOException e) {
-            System.err.println("Erro ao salvar ranking: " + e.getMessage());
+            System.err.println("Erro crítico ao salvar ranking: " + e.getMessage());
             e.printStackTrace();
         }
     }

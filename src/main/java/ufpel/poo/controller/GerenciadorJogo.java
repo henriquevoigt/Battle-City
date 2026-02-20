@@ -208,18 +208,18 @@ public class GerenciadorJogo implements IObservadorMapa {
     private void definirQuantidadeInimigos() {
         Dificuldade dif = config.getDificuldade();
         if (dif == Dificuldade.FACIL) {
-            qtdInimigosFase = 3;
+            qtdInimigosFase = 8;
         }
         else if (dif == Dificuldade.MEDIO) {
-            qtdInimigosFase = 5;
+            qtdInimigosFase = 12;
         }
         else {
-            qtdInimigosFase = 8;
+            qtdInimigosFase = 16;
         }
     }
 
     private long calcularDuracaoDaFase() {
-        return (60 + (qtdInimigosFase * 10) + (faseAtual * 15)) * 1000;
+        return (60 + (qtdInimigosFase * 5) + (faseAtual * 15)) * 1000;
     }
 
     public void alternarPausa() {

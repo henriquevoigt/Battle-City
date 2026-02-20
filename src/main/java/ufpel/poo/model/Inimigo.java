@@ -22,9 +22,7 @@ public abstract class Inimigo extends Tanque implements Runnable {
 
     protected void tentarAtirar() {
         if (podeAtirar()) {
-
             Projetil p = new Projetil(getX(), getY(), getDirecao(), this, motor);
-
             motor.adicionarProjetil(p);
         }
     }
@@ -62,7 +60,6 @@ public abstract class Inimigo extends Tanque implements Runnable {
     }
 
     protected boolean deveFicarParado() {
-   
         if (motor.isJogoPausado()) {
             dormir(100);
             return true;
@@ -73,8 +70,7 @@ public abstract class Inimigo extends Tanque implements Runnable {
             return true;
         }
         return false; 
-        }
-
+    }
 
     protected void dormir(int ms) {
         try { 

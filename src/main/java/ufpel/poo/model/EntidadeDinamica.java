@@ -30,32 +30,7 @@ public abstract class EntidadeDinamica implements IMovel, IDesenhavel {
     }
     
     public void setDirecao(Direcao novaDirecao) {
-
-        if (this.direcao == novaDirecao) {
-            return;
-        }
-
-        if (novaDirecao == Direcao.ESQUERDA || novaDirecao == Direcao.DIREITA) {
-            this.y = arredondarParaGrid(this.y);
-        } 
-        
-        else if (novaDirecao == Direcao.CIMA || novaDirecao == Direcao.BAIXO) {
-            this.x = arredondarParaGrid(this.x);
-        }
-
         this.direcao = novaDirecao;
-    }
-
-    private int arredondarParaGrid(int valor) {
-        int tamanhoBloco = 40;
-        int resto = valor % tamanhoBloco;
-
-        if (resto < 10) {
-            return valor - resto; 
-        } else if (resto > (tamanhoBloco - 10)) {
-            return valor + (tamanhoBloco - resto); 
-        }
-        return valor;
     }
 
     public void mover(IValidadorMovimento validador) {
