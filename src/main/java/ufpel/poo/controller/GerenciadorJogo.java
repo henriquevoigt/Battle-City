@@ -21,7 +21,7 @@ public class GerenciadorJogo implements IObservadorMapa {
     private List<Projetil> balas;
     private List<ItemPowerUp> itens;
     
-    // controle de tempo e feitos
+    // controle de tempo e efeitos
     private long fimEfeitoRelogio = 0;
     private long fimEfeitoCapacete = 0;
     private long fimEfeitoEstrela = 0;
@@ -261,7 +261,7 @@ public class GerenciadorJogo implements IObservadorMapa {
 
     @Override
     public void onBlocoDestruido(int x, int y) {
-        if (Math.random() < 0.20) { 
+        if (Math.random() < 0.10) { 
             spawnarPowerUp(x, y);
         }
     }
@@ -347,5 +347,17 @@ public class GerenciadorJogo implements IObservadorMapa {
     }
     public List<ItemPowerUp> getItens() { 
         return new ArrayList<>(itens); 
+    }
+    public boolean isCapaceteAtivo() {
+        return fimEfeitoCapacete > 0;
+    }
+    public boolean isEstrelaAtiva() {
+        return fimEfeitoEstrela > 0;
+    }
+    public boolean isRelogioAtivo() {
+        return fimEfeitoRelogio > 0;
+    }
+    public boolean isPaAtiva() {
+        return fimEfeitoPa > 0;
     }
 }

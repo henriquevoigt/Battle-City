@@ -16,9 +16,9 @@ public class MenuPanel extends JPanel {
         titulo.setFont(new Font("Arial", Font.BOLD, 30));
         titulo.setForeground(Color.ORANGE);
         
-        JButton btnJogar = criarBotao("1 - Jogar");
-        JButton btnRanking = criarBotao("2 - Ranking");
-        JButton btnSair = criarBotao("3 - Sair");
+        JButton btnJogar = criarBotao("Jogar");
+        JButton btnRanking = criarBotao("Ranking");
+        JButton btnSair = criarBotao("Sair");
 
         btnJogar.addActionListener(e -> {
             String nome = JOptionPane.showInputDialog("Digite seu nome, soldado:");

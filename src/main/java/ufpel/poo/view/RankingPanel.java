@@ -13,28 +13,34 @@ public class RankingPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.BLACK);
 
-        JLabel titulo = new JLabel("RANKING", SwingConstants.CENTER);
-        titulo.setFont(new Font("Arial", Font.BOLD, 28));
-        titulo.setForeground(Color.ORANGE);
+        JLabel titulo = new JLabel("TOP 10 - RANKING", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 45));
+        titulo.setForeground(Color.RED);
+        titulo.setBorder(BorderFactory.createEmptyBorder(30, 0, 20, 0));
         add(titulo, BorderLayout.NORTH);
 
         JTextArea areaRanking = new JTextArea();
         areaRanking.setEditable(false);
-        areaRanking.setFont(new Font("Monospaced", Font.PLAIN, 18));
+
+        areaRanking.setFont(new Font("Monospaced", Font.BOLD, 24));
         areaRanking.setBackground(Color.BLACK);
         areaRanking.setForeground(Color.WHITE);
+
+        areaRanking.setMargin(new Insets(20, 160, 20, 20));
 
         JScrollPane scroll = new JScrollPane(areaRanking);
         scroll.setBorder(null); 
         add(scroll, BorderLayout.CENTER);
 
         JButton btnVoltar = new JButton("Voltar ao Menu");
-        btnVoltar.setPreferredSize(new Dimension(200, 50));
+        btnVoltar.setPreferredSize(new Dimension(250, 50));
+        btnVoltar.setFont(new Font("Arial", Font.BOLD, 18));
 
         btnVoltar.addActionListener(e -> janela.mostrarMenu());
 
         JPanel painelSul = new JPanel();
         painelSul.setBackground(Color.BLACK); 
+        painelSul.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
         painelSul.add(btnVoltar);
         add(painelSul, BorderLayout.SOUTH);
         
@@ -76,11 +82,13 @@ public class RankingPanel extends JPanel {
                 }
             });
 
-            area.setText(String.format("%-15s %s\n", "NOME", "PONTOS"));
-            area.append("----------------------------\n");
+            area.setText(String.format("%-4s %-15s %s\n", "POS", "NOME", "PONTOS"));
+            area.append("----------------------------------\n");
 
-            for (String[] jogador : lista) {
-                area.append(String.format("%-15s %s\n", jogador[1], jogador[0]));
+            int limite = Math.min(10, lista.size());
+            for (int i = 0; i < limite; i++) {
+                String[] jogador = lista.get(i);
+                area.append(String.format("%-4d %-15s %06d\n", (i + 1), jogador[1], Integer.parseInt(jogador[0])));
             }
 
         } catch (Exception e) {

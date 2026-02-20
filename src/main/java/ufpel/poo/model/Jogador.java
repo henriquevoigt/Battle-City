@@ -140,6 +140,8 @@ public class Jogador extends Tanque {
         this.direcao = Direcao.CIMA;
         this.balasAtivas = 0;
         this.setAtivo(true);
+        this.invulneravel = false;
+        this.nivelDano = 1;
     }
 
     // --- GETTERS E MEMENTO ---
@@ -191,9 +193,5 @@ public class Jogador extends Tanque {
         else if (direcao == Direcao.CIMA)  g.fillRect(x+18, y, 4, 20);
         else if (direcao == Direcao.ESQUERDA) g.fillRect(x, y+18, 20, 4);
         else if (direcao == Direcao.DIREITA)  g.fillRect(x+20, y+18, 20, 4);
-        
-        // esteiras
-        g.fillRect(x + 2, y + 2, 36, 4);
-        g.fillRect(x + 2, y + 34, 36, 4);
     }
 }

@@ -52,6 +52,10 @@ public class MotorFisica implements IValidadorMovimento {
         this.balas.add(p);
     }
 
+    public Jogador getJogador() {
+        return this.jogador;
+    }
+
     private boolean colideComBlocosDoMapa(Rectangle rect) {
         int xMin = rect.x;
         int xMax = rect.x + rect.width - 1;

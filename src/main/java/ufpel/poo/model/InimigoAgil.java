@@ -6,6 +6,8 @@ import ufpel.poo.controller.MotorFisica;
 
 public class InimigoAgil extends Inimigo {
 
+    private int contadorPassos = 0;
+
     public InimigoAgil(int x, int y, Mapa mapa, MotorFisica motor) {
         super(x, y, mapa, motor);
         this.velocidade = 3; 
@@ -18,17 +20,53 @@ public class InimigoAgil extends Inimigo {
         return this.pontuacao; 
     }
 
+    private void perseguirJogador() {
+        Jogador jogador = motor.getJogador();
+
+        if (jogador == null || !jogador.estaVivo()) {
+            movimentoAleatorio();
+            return;
+        }
+
+        contadorPassos++;
+
+        if (contadorPassos > 30) {
+            int distX = jogador.getX() - this.x;
+            int distY = jogador.getY() - this.y;
+
+            if (Math.abs(distX) > Math.abs(distY)) {
+                setDirecao(distX > 0 ? Direcao.DIREITA : Direcao.ESQUERDA);
+            } else {
+                setDirecao(distY > 0 ? Direcao.BAIXO : Direcao.CIMA);
+            }
+            contadorPassos = 0;
+        }
+
+        int xAntigo = this.x;
+        int yAntigo = this.y;
+
+        mover(motor);
+
+        if (this.x == xAntigo && this.y == yAntigo) {
+            mudarDirecaoAleatoria();
+
+            contadorPassos = -30; 
+        }
+    }
+
     @Override
     public void run() {
         while (this.estaVivo()) {
             if (deveFicarParado()) {
                 continue; 
             }
-            movimentoAleatorio();
 
-            if (random.nextInt(100) < 2) {
+            perseguirJogador();
+
+            if (random.nextInt(100) < 3) {
                 tentarAtirar();
             }
+            
             try { 
                 Thread.sleep(16); 
             } 

@@ -59,27 +59,30 @@ public class GerenciadorInimigos {
     }
 
     private Inimigo criarInimigo(Dificuldade dif, int index, int x, int y, Mapa mapa, MotorFisica motor) {
-         if (dif == Dificuldade.FACIL) {
-            if (index == 1) {
-                return new InimigoAgil(x, y, mapa, motor);
-            }
-            return new InimigoDefault(x, y, mapa, motor);
-         } 
-         else if (dif == Dificuldade.MEDIO) {
-            if (index % 2 != 0) {
-                return new InimigoAgil(x, y, mapa, motor);
-            }
-            return new InimigoDefault(x, y, mapa, motor);
-         } 
-         else { 
-            if (index % 3 == 0) {
-                return new InimigoBlindado(x, y, mapa, motor);
-            }
-            else if (index % 3 == 1) {
-                return new InimigoAgil(x, y, mapa, motor);
-            }
-            return new InimigoDefault(x, y, mapa, motor);
-         }
+        
+        // sorteia um número de 0 a 99 (100% de chance total)
+        int chance = random.nextInt(100); 
+
+        if (dif == Dificuldade.FACIL) {
+            // facil: 70% default, 20% agil, 10% blindado
+            if (chance < 20) return new InimigoAgil(x, y, mapa, motor);
+            else if (chance < 30) return new InimigoBlindado(x, y, mapa, motor);
+            else return new InimigoDefault(x, y, mapa, motor);
+            
+        } 
+        else if (dif == Dificuldade.MEDIO) {
+            // medio: 50% default, 30% agil, 20% blindado
+            if (chance < 30) return new InimigoAgil(x, y, mapa, motor);
+            else if (chance < 50) return new InimigoBlindado(x, y, mapa, motor);
+            else return new InimigoDefault(x, y, mapa, motor);
+            
+        } 
+        else { 
+            // difcil: 30% default, 30% agil, 40% blindado
+            if (chance < 30) return new InimigoAgil(x, y, mapa, motor);
+            else if (chance < 70) return new InimigoBlindado(x, y, mapa, motor);
+            else return new InimigoDefault(x, y, mapa, motor);
+        }
     }
 
     public int getPendentes() {

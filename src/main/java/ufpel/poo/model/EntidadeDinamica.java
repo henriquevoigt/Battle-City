@@ -82,7 +82,7 @@ public abstract class EntidadeDinamica implements IMovel, IDesenhavel {
     }
 
     public Rectangle getLimites() {
-        return new Rectangle(x, y, 40, 40);
+        return new Rectangle(x + 2, y + 2, 36, 36);
     }
 
     public abstract void desenhar(Graphics g);

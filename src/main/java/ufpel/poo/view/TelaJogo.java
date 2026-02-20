@@ -119,6 +119,7 @@ public class TelaJogo extends JPanel implements ActionListener {
     }
 
     private void desenharHUD(Graphics2D g2d) {
+        // Fundo do HUD
         g2d.setColor(Color.GRAY);
         g2d.fillRect(TAMANHO_MAPA, 0, LARGURA_HUD, ALTURA_LOGICA);
         
@@ -126,20 +127,65 @@ public class TelaJogo extends JPanel implements ActionListener {
         g2d.setFont(new Font("Arial", Font.BOLD, 20));
         int xHud = TAMANHO_MAPA + 20;
 
-        g2d.drawString("TEMPO", xHud, 300);
-        long tempo = controller.getTempoRestante();
-        g2d.setColor(tempo <= 10 ? Color.RED : Color.BLUE);
-        g2d.drawString(String.valueOf(tempo), xHud, 330);
-
-        g2d.setColor(Color.BLACK);
+        // Inimigos Restantes
         g2d.drawString("INIMIGOS: " + controller.getInimigosRestantes(), xHud, 80);
         
+        // Status do Jogador
         if (controller.getJogador() != null) {
-            g2d.drawString("Vidas: " + (controller.getJogador().getEstoqueVidas() + 1), xHud, 180);
-            g2d.drawString("Pontos: " + controller.getJogador().getPontuacao(), xHud, 210);
+            g2d.drawString("Vidas: " + (controller.getJogador().getEstoqueVidas() + 1), xHud, 150);
+            g2d.drawString("Pontos: " + controller.getJogador().getPontuacao(), xHud, 180);
         }
         
-        g2d.drawString("FASE " + controller.getFaseAtual(), xHud, 400);
+        // --- EXIBIÇÃO DOS POWER-UPS ATIVOS ---
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("POWER-UPS:", xHud, 230);
+        
+        int yStatus = 255;
+        boolean temPowerUp = false;
+        g2d.setFont(new Font("Arial", Font.BOLD, 14)); // Fonte um pouco menor para a lista
+
+        if (controller.isCapaceteAtivo()) {
+            g2d.setColor(Color.GREEN);
+            g2d.drawString("■ Capacete", xHud, yStatus);
+            yStatus += 20;
+            temPowerUp = true;
+        }
+        if (controller.isEstrelaAtiva()) {
+            g2d.setColor(Color.YELLOW);
+            g2d.drawString("■ Estrela", xHud, yStatus);
+            yStatus += 20;
+            temPowerUp = true;
+        }
+        if (controller.isRelogioAtivo()) {
+            g2d.setColor(Color.CYAN);
+            g2d.drawString("■ Relógio", xHud, yStatus);
+            yStatus += 20;
+            temPowerUp = true;
+        }
+        if (controller.isPaAtiva()) {
+            g2d.setColor(Color.LIGHT_GRAY);
+            g2d.drawString("■ Pá (Base)", xHud, yStatus);
+            yStatus += 20;
+            temPowerUp = true;
+        }
+        
+        if (!temPowerUp) {
+            g2d.setColor(Color.DARK_GRAY);
+            g2d.drawString("Nenhum ativo", xHud, yStatus);
+        }
+
+        // --- TEMPO ---
+        g2d.setFont(new Font("Arial", Font.BOLD, 20)); // Retorna para a fonte maior
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("TEMPO", xHud, 370);
+        
+        long tempo = controller.getTempoRestante();
+        g2d.setColor(tempo <= 10 ? Color.RED : Color.BLUE);
+        g2d.drawString(String.valueOf(tempo), xHud, 400);
+
+        // --- FASE ---
+        g2d.setColor(Color.BLACK);
+        g2d.drawString("FASE " + controller.getFaseAtual(), xHud, 460);
     }
     
     private void desenharOverlayPause(Graphics2D g) {
